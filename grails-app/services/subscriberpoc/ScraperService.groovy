@@ -7,5 +7,7 @@ class ScraperService {
 
     def getAgencyReleases() {
 
+        def allAgencies = Agency.list()
+
     }
 }
