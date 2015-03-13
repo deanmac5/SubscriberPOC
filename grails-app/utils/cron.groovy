@@ -1,13 +1,19 @@
-import subscriberpoc.Agency
+import groovyx.net.http.ContentType
+import groovyx.net.http.HTTPBuilder
+import groovyx.net.http.Method
 
-/**
- * Created by paulk on 13/03/15.
- *
- * Cron job setup to run over each site and agency, and return a list of results based on filters set in the application
- *
- */
+@Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.7' )
+
+def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
 
 
-def agencyList = Agency.list();
+http.request( Method.GET, ContentType.TEXT ) { req ->
+    uri.path = 'agency'
+    headers.Accept = 'application/json'
 
-print agencyList
+    response.success = { resp, reader ->
+        println "Got response: ${resp.statusLine}"
+        println "Content-Type: ${resp.headers.'Content-Type'}"
+        print reader.text
+    }
+}

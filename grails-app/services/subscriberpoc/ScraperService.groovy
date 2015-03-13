@@ -9,5 +9,7 @@ class ScraperService {
 
         def allAgencies = Agency.list()
 
+        print allAgencies
+
     }
 }
