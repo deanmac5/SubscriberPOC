@@ -17,6 +17,7 @@
 /plugins
 /web-app/plugins
 
-/target
+target
+*.iml
 
 
