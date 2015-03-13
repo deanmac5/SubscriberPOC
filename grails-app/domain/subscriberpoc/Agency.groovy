@@ -10,7 +10,7 @@ class Agency {
 
 
     static constraints = {
-        title blank: false, maxSize: 300
+        title blank: false, maxSize: 100
         portfolio: blank: false
     }
 }
