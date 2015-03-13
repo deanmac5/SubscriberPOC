@@ -2,5 +2,7 @@ package subscriberpoc
 
 class SubscriberController {
 
-    def index() {}
+
+
+    static scaffold = true
 }

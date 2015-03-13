@@ -5,7 +5,9 @@ class Agency {
     String title
     String portfolio
 
-    String domain
+    static hasMany = [releases: Release]
+
+
 
     static constraints = {
         title blank: false, maxSize: 300

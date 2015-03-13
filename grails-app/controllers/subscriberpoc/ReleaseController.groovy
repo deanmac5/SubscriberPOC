@@ -1,8 +1,6 @@
 package subscriberpoc
 
-class AgencyController {
+class ReleaseController {
 
     static scaffold = true
-
-
 }
