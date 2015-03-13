@@ -5,6 +5,7 @@ class Subscription {
     Date created = new Date()
 
     static belongsTo = [subscriber: Subscriber]
+    static hasMany = [agencies: Agency]
 
     static constraints = {
     }
