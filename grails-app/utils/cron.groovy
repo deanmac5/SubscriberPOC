@@ -13,13 +13,12 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
 
     response.success = { resp, reader ->
         println "Got response: ${resp.statusLine}"
-        println "Content-Type: ${resp.headers.'Content-Type'}"
         def readerText = reader.text
         println readerText
         Agency[] agencyList = JSON.parse(readerText)
         for(Agency agency: agencyList) {
-            println agency.title
-            println agency.portfolio
+            println "Agency [" + agency.title + "]"
+            println "URLs [" + agency.urls + "]"
         }
 
 

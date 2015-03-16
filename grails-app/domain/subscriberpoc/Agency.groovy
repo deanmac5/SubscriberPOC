@@ -4,9 +4,9 @@ class Agency {
 
     String title
     String portfolio
-    def urlList
+    List urls
 
-    static hasMany = [releases: Release]
+    static hasMany = [releases: Release, urls: String]
 
 
 
