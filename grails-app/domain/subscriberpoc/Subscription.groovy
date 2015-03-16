@@ -8,5 +8,7 @@ class Subscription {
     static hasMany = [agencies: Agency]
 
     static constraints = {
+        subscriber blank: false
+        agencies blank: false
     }
 }
