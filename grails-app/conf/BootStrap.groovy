@@ -1,4 +1,6 @@
 import subscriberpoc.Agency
+import subscriberpoc.Subscriber
+import subscriberpoc.Subscription
 
 class BootStrap {
 
