@@ -1,6 +1,8 @@
+import grails.converters.JSON
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
+import subscriberpoc.Agency
 
 @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.7' )
 
@@ -14,6 +16,14 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
     response.success = { resp, reader ->
         println "Got response: ${resp.statusLine}"
         println "Content-Type: ${resp.headers.'Content-Type'}"
-        print reader.text
+        def readerText = reader.text
+        println readerText
+        Agency[] agencyList = JSON.parse(readerText)
+        for(Agency agency: agencyList) {
+            println agency.title
+            println agency.portfolio
+        }
+
+
     }
 }
