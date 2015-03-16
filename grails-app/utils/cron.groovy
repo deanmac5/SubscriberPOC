@@ -4,8 +4,6 @@ import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
 import subscriberpoc.Agency
 
-@Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.7' )
-
 def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
 
 
