@@ -9,12 +9,17 @@ import spock.lang.Specification
 @TestFor(Agency)
 class AgencySpec extends Specification {
 
-    def setup() {
-    }
+    def "Retrieving urls from Agency"(){
+        given: "A new agency"
+        def agency = new Agency(title: "Dept of Testing", portfolio: "The portfolio", urls: ["http://somethingOne", "http://somethingElse"])
 
-    def cleanup() {
-    }
+        when: "the agency is saved"
+        agency.save()
 
-    void "test something"() {
+        then: "it has been saved and the url's can be retrieved"
+        agency.errors.errorCount == 0
+        agency.id != null
+        agency.urls[1] == "http://somethingElse"
+        agency.urls[0] != "anything"
     }
 }
