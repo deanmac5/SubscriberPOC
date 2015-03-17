@@ -130,7 +130,7 @@ class CrawlerExtender extends WebCrawler {
             if(descriptionElements != null && !descriptionElements.isEmpty() && createdElements != null && !createdElements.isEmpty()) {
                 String description = descriptionElements.get(0).attr("content");
                 String created = createdElements.get(0).attr("content");
-                println("Created: [" + created + "]")
+                println("Created: [" + created + "]");
                 println("Description: [" + description + "]");
             }
         }
