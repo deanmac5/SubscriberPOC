@@ -60,8 +60,8 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
                 String[] customData = new String[3];
                 customData[0] = url.toURI().getScheme() + "://" + url.toURI().getHost();
-                customData[1] = agency.metatagCreated
-                customData[2] = agency.metatagDescription
+                customData[1] = "dcterms.date"
+                customData[2] = "dcterms.description"
                 controller.setCustomData(customData)
 
                 controller.addSeed(url);
