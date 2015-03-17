@@ -4,9 +4,9 @@ class Agency {
 
     String title
     String portfolio
-    List urls
+    List mediaLists
 
-    static hasMany = [releases: Release, urls: String]
+    static hasMany = [releases: Release, mediaLists: MediaList]
 
 
 
