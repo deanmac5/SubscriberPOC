@@ -15,7 +15,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import subscriberpoc.Agency
-import subscriberpoc.Release
+import subscriberpoc.MediaList
 
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -35,13 +35,13 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
         Agency[] agencyList = JSON.parse(readerText)
         for(Agency agency: agencyList) {
             String title = agency.title
-            List<String> urls = agency.urls
+            List<MediaList> mediaLists = agency.mediaLists
             println "Agency [" + title + "]"
-            for(String url: urls) {
-                println "Starting crawl of URL [" + url + "]"
-                println "HOST [" + url.toURI().getHost() + "]"
+            for(MediaList mediaList: mediaLists) {
+                println "Starting crawl of URL [" + mediaList.url + "] with id [" + mediaList.id + "]"
+                println "HOST [" + mediaList.url.toURI().getHost() + "]"
 
-                String crawlStorageFolder = "/tmp/" + url.toURI().getHost() + "/";
+                String crawlStorageFolder = "/tmp/" + mediaList.url.toURI().getHost() + "/";
 
                 int numberOfCrawlers = 1;
                 CrawlConfig config = new CrawlConfig();
@@ -59,17 +59,17 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
                 CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
                 String[] customData = new String[3];
-                customData[0] = url.toURI().getScheme() + "://" + url.toURI().getHost();
-                customData[1] = "dcterms.date"
-                customData[2] = "dcterms.description"
+                customData[0] = mediaList.url.toURI().getScheme() + "://" + mediaList.url.toURI().getHost();
+                customData[1] = mediaList.created
+                customData[2] = mediaList.description
                 controller.setCustomData(customData)
 
-                controller.addSeed(url);
+                controller.addSeed(mediaList.url);
 
                 controller.startNonBlocking(CrawlerExtender.class, numberOfCrawlers);
 
                 controller.waitUntilFinish();
-                println("Crawl of [" + url.toURI().getHost() + "] finished");
+                println("Crawl of [" + mediaList.url.toURI().getHost() + "] finished");
                 println "Script running for [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
             }
         }
