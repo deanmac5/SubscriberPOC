@@ -11,12 +11,18 @@ import grails.converters.JSON
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.select.Elements
 import subscriberpoc.Agency
+import subscriberpoc.Release
 
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
 
+long lStartTime = new Date().getTime();
 
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'agency'
@@ -51,10 +57,12 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 PageFetcher pageFetcher = new PageFetcher(config);
                 RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
                 RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
-                CrawlController controller = new CrawlController(/*url.toURI().getHost(), */config, pageFetcher, robotstxtServer);
-                String[] crawlerDomain = new String[1];
-                crawlerDomain[0] = url.toURI().getScheme() + "://" + url.toURI().getHost();
-                controller.setCustomData(crawlerDomain)
+                CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
+                String[] customData = new String[3];
+                customData[0] = url.toURI().getScheme() + "://" + url.toURI().getHost();
+                customData[1] = agency.metatagCreated
+                customData[2] = agency.metatagDescription
+                controller.setCustomData(customData)
 
                 controller.addSeed(url);
 
@@ -62,10 +70,11 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
 
                 controller.waitUntilFinish();
                 println("Crawl of [" + url.toURI().getHost() + "] finished");
+                println "Script running for [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
             }
         }
 
-
+        println "Time to run [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
     }
 }
 
@@ -73,10 +82,15 @@ class CrawlerExtender extends WebCrawler {
 
     private static final Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf|rm|smil|wmv|swf|wma|zip|rar|gz))\$")
 
-    private String[] myCrawlDomains;
+    private String myCrawlDomains;
+    private String createdMeta;
+    private String descriptionMeta;
 
     @Override public void onStart() {
-        myCrawlDomains = (String[]) myController.getCustomData();
+        String[] customData = (String[]) myController.getCustomData();
+        myCrawlDomains = customData[0];
+        createdMeta = customData[1];
+        descriptionMeta = customData[2];
     }
 
     @Override
@@ -86,11 +100,9 @@ class CrawlerExtender extends WebCrawler {
             return false;
         }
 
-        for (String crawlDomain : myCrawlDomains) {
-            println "Check that [" + href + "] starts with [" + crawlDomain + "]"
-            if (href.startsWith(crawlDomain)) {
-                return true;
-            }
+        println "Check that [" + href + "] starts with [" + myCrawlDomains + "]"
+        if (href.startsWith(myCrawlDomains)) {
+            return true;
         }
         return false;
     }
@@ -100,19 +112,62 @@ class CrawlerExtender extends WebCrawler {
         int docid = page.getWebURL().getDocid();
         String url = page.getWebURL().getURL();
         int parentDocid = page.getWebURL().getParentDocid();
-        println("Docid: {} " + docid);
-        println("URL: {} " + url);
-        println("Docid of parent page: {} " +  parentDocid);
+        println("Docid [" + docid + "]");
+        println("URL: [" + url + "]");
+        println("Docid of parent page: [" +  parentDocid + "]");
 
         if (page.getParseData() instanceof HtmlParseData) {
             HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
-            String text = htmlParseData.getText();
             String html = htmlParseData.getHtml();
             Set<WebURL> links = htmlParseData.getOutgoingUrls();
-            println("Text length: {} " + text.length());
-            println("Html length: {} " + html.length());
-            println("Number of outgoing links: {} " + links.size());
+            println("Title: [" + htmlParseData.getTitle() + "]")
+            println("HtmlHeader length: [" + html.length() + "]");
+            println("Number of outgoing links: [" + links.size() + "]");
+
+            Document doc = Jsoup.parse(html);
+            Elements descriptionElements = doc.select("meta[name=" + descriptionMeta + "]");
+            Elements createdElements = doc.select("meta[name=" + createdMeta + "]")
+            if(descriptionElements != null && !descriptionElements.isEmpty() && createdElements != null && !createdElements.isEmpty()) {
+                String description = descriptionElements.get(0).attr("content");
+                String created = createdElements.get(0).attr("content");
+                println("Created: [" + created + "]")
+                println("Description: [" + description + "]");
+            }
         }
         println("=============");
     }
+}
+
+/**
+ * Convert a millisecond duration to a string format
+ *
+ * @param millis A duration to convert to a string form
+ * @return A string of the form "X Days Y Hours Z Minutes A Seconds".
+ */
+public static String getDurationBreakdown(long millis)
+{
+    if(millis < 0)
+    {
+        throw new IllegalArgumentException("Duration must be greater than zero!");
+    }
+
+    long days = TimeUnit.MILLISECONDS.toDays(millis);
+    millis -= TimeUnit.DAYS.toMillis(days);
+    long hours = TimeUnit.MILLISECONDS.toHours(millis);
+    millis -= TimeUnit.HOURS.toMillis(hours);
+    long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
+    millis -= TimeUnit.MINUTES.toMillis(minutes);
+    long seconds = TimeUnit.MILLISECONDS.toSeconds(millis);
+
+    StringBuilder sb = new StringBuilder(64);
+    sb.append(days);
+    sb.append(" Days ");
+    sb.append(hours);
+    sb.append(" Hours ");
+    sb.append(minutes);
+    sb.append(" Minutes ");
+    sb.append(seconds);
+    sb.append(" Seconds");
+
+    return(sb.toString());
 }
