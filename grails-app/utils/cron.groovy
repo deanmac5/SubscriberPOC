@@ -1,7 +1,6 @@
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import edu.uci.ics.crawler4j.crawler.CrawlConfig
 import edu.uci.ics.crawler4j.crawler.CrawlController
@@ -16,18 +15,40 @@ import grails.converters.JSON
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
+import groovyx.net.http.RESTClient
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import subscriberpoc.Agency
 import subscriberpoc.MediaList
+import subscriberpoc.Release
 
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
+long lStartTime = new Date().getTime();
+
 def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
 
-long lStartTime = new Date().getTime();
+Gson gson = new Gson()
+List<MediaList> mediaListList = new ArrayList<>(0);
+List<Release> releases = new ArrayList<>(0)
+
+http.request( Method.GET, ContentType.TEXT ) { req ->
+    uri.path = 'mediaList'
+    headers.Accept = 'application/json'
+
+    response.success = { resp, reader ->
+        println "Got response: ${resp.statusLine}"
+        def readerText = reader.text
+        println readerText
+        JsonArray mediaListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
+        for (JsonElement mediaListJson : mediaListJsonArray) {
+            MediaList mediaList = gson.fromJson(mediaListJson, MediaList.class)
+            mediaListList.add(mediaList)
+        }
+    }
+}
 
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'agency'
@@ -37,7 +58,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
         println "Got response: ${resp.statusLine}"
         def readerText = reader.text
         println readerText
-        Gson gson = new Gson()
+
         JsonArray agencyJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
         for (JsonElement agencyJson : agencyJsonArray) {
             Agency agency = gson.fromJson(agencyJson, Agency.class)
@@ -48,6 +69,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 MediaList mediaList = gson.fromJson(mediaListJson, MediaList.class)
                 println mediaList.id
 
+                mediaList = mediaListList.find{ ( it.id == mediaList.id ) }
                 println "Starting crawl of URL [" + mediaList.url + "] with id [" + mediaList.id + "]"
                 println "HOST [" + mediaList.url.toURI().getHost() + "]"
 
@@ -59,7 +81,8 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
 
                 config.setPolitenessDelay(1000);
                 config.setMaxDepthOfCrawling(1);
-                config.setMaxPagesToFetch(-1);
+                //Change this to -1 when proper testing
+                config.setMaxPagesToFetch(6);
 
                 config.setIncludeBinaryContentInCrawling(false);
                 config.setResumableCrawling(false);
@@ -68,24 +91,55 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 RobotstxtConfig robotsTxtConfig = new RobotstxtConfig();
                 RobotstxtServer robotsTxtServer = new RobotstxtServer(robotsTxtConfig, pageFetcher);
                 CrawlController controller = new CrawlController(config, pageFetcher, robotsTxtServer);
-                String[] customData = new String[3];
+                String[] customData = new String[4];
                 customData[0] = mediaList.url.toURI().getScheme() + "://" + mediaList.url.toURI().getHost();
                 customData[1] = mediaList.created
                 customData[2] = mediaList.description
+                customData[3] = agency.title
                 controller.setCustomData(customData)
 
                 controller.addSeed(mediaList.url);
 
-                controller.startNonBlocking(CrawlerExtender.class, numberOfCrawlers);
+                controller.start(CrawlerExtender.class, numberOfCrawlers);
 
-                controller.waitUntilFinish();
-                println("Crawl of [" + mediaList.url.toURI().getHost() + "] finished");
+                releases = controller.getCustomData();
+                for(Release release: releases) {
+                    release.agency = agency
+                }
+
+                println("Crawl of [" + mediaList.url.toURI().getHost() + "] finished with [" + releases.size() + "] possible media releases found");
                 println "Script running for [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
             }
         }
         println "Time to run [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
     }
 }
+
+
+for(Release release: releases) {
+    println "Adding in release [" + release.title + "]"
+
+    def jsonConvert = release as JSON;
+    println "JSON convert [" + jsonConvert.toString(true) + "]"
+
+
+
+    http.post( Method.POST, ContentType.JSON ) { req ->
+        uri.path = 'release'
+        headers.Accept = 'application/json'
+
+        body = [ "title" : release.title, "url" : release.url, "snippet" : release.snippet, "releaseDate" : release.releaseDate ]
+
+        response.success = { resp, reader ->
+            println "Got response: ${resp.statusLine}"
+        }
+        response.failure = { resp ->
+            println "Unexpected error: ${resp}"
+        }
+    }
+
+}
+
 
 class CrawlerExtender extends WebCrawler {
 
@@ -94,12 +148,15 @@ class CrawlerExtender extends WebCrawler {
     private String myCrawlDomains;
     private String createdMeta;
     private String descriptionMeta;
+    private String agency;
 
     @Override public void onStart() {
         String[] customData = (String[]) myController.getCustomData();
         myCrawlDomains = customData[0];
         createdMeta = customData[1];
         descriptionMeta = customData[2];
+        agency = customData[3];
+        myController.setCustomData(new ArrayList<Release>(0));
     }
 
     @Override
@@ -141,6 +198,10 @@ class CrawlerExtender extends WebCrawler {
                 String created = createdElements.get(0).attr("content");
                 println("Created: [" + created + "]");
                 println("Description: [" + description + "]");
+
+                Release release = new Release(title: htmlParseData.getTitle(), snippet: description, url: page.getWebURL().getURL(), releaseDate: new Date());
+
+                ((List<Release>)myController.getCustomData()).add(release)
             }
         }
         println("=============");

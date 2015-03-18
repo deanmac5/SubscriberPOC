@@ -1,10 +1,12 @@
 package subscriberpoc
 
-class MediaListController {
+import grails.rest.RestfulController
+
+class MediaListController extends RestfulController {
 
     static scaffold = true
-
     static responseFormats = ['html', 'json', 'xml']
-
-    def index() {}
+    MediaListController() {
+        super(MediaList)
+    }
 }
