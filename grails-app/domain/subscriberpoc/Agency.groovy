@@ -8,6 +8,10 @@ class Agency {
 
     static hasMany = [releases: Release, mediaLists: MediaList]
 
+    static mapping = {
+        mediaLists lazy: false
+    }
+
 
 
     static constraints = {

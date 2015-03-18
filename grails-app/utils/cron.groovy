@@ -1,3 +1,8 @@
+import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import edu.uci.ics.crawler4j.crawler.CrawlConfig
 import edu.uci.ics.crawler4j.crawler.CrawlController
 import edu.uci.ics.crawler4j.crawler.Page
@@ -32,12 +37,17 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
         println "Got response: ${resp.statusLine}"
         def readerText = reader.text
         println readerText
-        Agency[] agencyList = JSON.parse(readerText)
-        for(Agency agency: agencyList) {
-            String title = agency.title
-            List<MediaList> mediaLists = agency.mediaLists
-            println "Agency [" + title + "]"
-            for(MediaList mediaList: mediaLists) {
+        Gson gson = new Gson()
+        JsonArray agencyJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
+        for (JsonElement agencyJson : agencyJsonArray) {
+            Agency agency = gson.fromJson(agencyJson, Agency.class)
+            println "Agency Title: " + agency.title
+            JsonArray mediaLists = agencyJson.get("mediaLists").getAsJsonArray();
+
+            for(JsonElement mediaListJson : mediaLists) {
+                MediaList mediaList = gson.fromJson(mediaListJson, MediaList.class)
+                println mediaList.id
+
                 println "Starting crawl of URL [" + mediaList.url + "] with id [" + mediaList.id + "]"
                 println "HOST [" + mediaList.url.toURI().getHost() + "]"
 
@@ -55,9 +65,9 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 config.setResumableCrawling(false);
 
                 PageFetcher pageFetcher = new PageFetcher(config);
-                RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
-                RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
-                CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
+                RobotstxtConfig robotsTxtConfig = new RobotstxtConfig();
+                RobotstxtServer robotsTxtServer = new RobotstxtServer(robotsTxtConfig, pageFetcher);
+                CrawlController controller = new CrawlController(config, pageFetcher, robotsTxtServer);
                 String[] customData = new String[3];
                 customData[0] = mediaList.url.toURI().getScheme() + "://" + mediaList.url.toURI().getHost();
                 customData[1] = mediaList.created
@@ -73,7 +83,6 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 println "Script running for [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
             }
         }
-
         println "Time to run [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
     }
 }

@@ -8,4 +8,10 @@ class MediaList {
 
     static constraints = {
     }
+
+    static belongsTo = [agency: Agency]
+
+    static mapping = {
+        agency lazy: false
+    }
 }
