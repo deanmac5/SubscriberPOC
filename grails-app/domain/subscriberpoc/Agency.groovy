@@ -18,4 +18,8 @@ class Agency {
         title blank: false, maxSize: 100
         portfolio: blank: false
     }
+
+    String toString() {
+        return title
+    }
 }

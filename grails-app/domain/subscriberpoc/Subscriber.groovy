@@ -5,7 +5,7 @@ class Subscriber {
     String name
     String email
 
-    static hasMany = [subscriptions: Subscription]
+    static hasMany = [subscriptions: Agency]
 
     static constraints = {
         name blank: false, maxSize: 100

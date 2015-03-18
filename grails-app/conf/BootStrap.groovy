@@ -1,7 +1,6 @@
 import subscriberpoc.Agency
 import subscriberpoc.MediaList
 import subscriberpoc.Subscriber
-import subscriberpoc.Subscription
 
 class BootStrap {
 
@@ -24,6 +23,6 @@ class BootStrap {
         agency2.addToMediaLists(new MediaList(created: "DC.Date.created", description: "DC.Description", url: "http://www.financeminister.gov.au/media/2015/index.html")).save()
         agency2.addToMediaLists(new MediaList(created: "DCTERMS.date", description: "description", url: "http://www.finance.gov.au/about-the-department/media-centre/secretary/")).save()
         new Subscriber(name: "Pablo", email: "pablo@test.com").save()
-        new Subscription(subscriber: Subscriber.findByName("Pablo"), agencies: Agency.findByTitle("Dept of Industry")).save()
+//        new Subscription(subscriber: Subscriber.findByName("Pablo"), agencies: Agency.findByTitle("Dept of Industry")).save()
     }
 }
