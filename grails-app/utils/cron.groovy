@@ -31,7 +31,7 @@ def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
 
 Gson gson = new Gson()
 List<Site> sitesList = new ArrayList<>(0);
-List<Release> releases = new ArrayList<>(0)
+List<Release> releasesList = new ArrayList<>(0)
 
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'site'
@@ -105,6 +105,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 releases = controller.getCustomData();
                 for(Release release: releases) {
                     release.site = siteList
+                    releasesList.add(release)
                 }
 
                 println("Crawl of [" + siteList.url.toURI().getHost() + "] finished with [" + releases.size() + "] possible media releases found");
@@ -116,7 +117,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
 }
 
 
-for(Release release: releases) {
+for(Release release: releasesList) {
     println "Adding in release [" + release.title + "]"
 
     def jsonConvert = release as JSON;
