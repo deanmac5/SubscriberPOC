@@ -139,8 +139,9 @@ for(Release release: releasesList) {
     def jsonConvert = release as JSON;
     println "JSON convert [" + jsonConvert.toString(true) + "]"
 
-    //Do findBy snippet + title + site, if found don't add. (FIX THIS)
-    Release existingRelease = existingReleases.find { it.title == release.title && it.snippet == release.snippet && it.site == release.site }
+    //Do findBy snippet + title + site, if found don't add.
+    Closure closureRelease = { it.title == release.title && it.snippet == release.snippet && it.site.url == release.site.url }
+    Release existingRelease = existingReleases.find { closureRelease }
 
     if( existingRelease == null ) {
         println "Adding in release [" + release.title + "]"
