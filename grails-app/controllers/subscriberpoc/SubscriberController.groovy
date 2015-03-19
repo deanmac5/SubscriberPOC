@@ -6,3 +6,9 @@ class SubscriberController {
 
     static scaffold = true
 }
+
+class SaveUserCommand{
+
+}
+
+

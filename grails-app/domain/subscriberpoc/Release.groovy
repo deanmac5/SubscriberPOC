@@ -11,6 +11,7 @@ class Release {
     String snippet
     Date releaseDate
     Date dateCreated
+    boolean isMediaRelease = true
 
     static belongsTo = [site: Site]
 
@@ -22,6 +23,7 @@ class Release {
         title blank: false
         url url: true
         snippet maxSize:  1024
+
     }
 
     String toString(){
