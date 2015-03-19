@@ -125,7 +125,7 @@ for(Release release: releases) {
 
     http.request( Method.POST, ContentType.JSON ) { req ->
         uri.path = 'release'
-        def attr = [ "title" : release.title, "url" : release.url, "snippet" : release.snippet, "releaseDate" : release.releaseDate ]
+        def attr = [ "title" : release.title, "url" : release.url, "snippet" : release.snippet, "releaseDate" : release.releaseDate, "site": release.site ]
         body = (attr as JSON).toString()
         response.success = { resp, reader ->
             println "Got response: ${resp.statusLine}"
