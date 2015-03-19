@@ -90,11 +90,12 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 RobotstxtConfig robotsTxtConfig = new RobotstxtConfig();
                 RobotstxtServer robotsTxtServer = new RobotstxtServer(robotsTxtConfig, pageFetcher);
                 CrawlController controller = new CrawlController(config, pageFetcher, robotsTxtServer);
-                String[] customData = new String[4];
+                String[] customData = new String[5];
                 customData[0] = siteList.url.toURI().getScheme() + "://" + siteList.url.toURI().getHost();
                 customData[1] = siteList.created
                 customData[2] = siteList.description
                 customData[3] = agency.title
+                customData[4] = siteList.createdRegex
                 controller.setCustomData(customData)
 
                 controller.addSeed(siteList.url);
@@ -125,7 +126,7 @@ for(Release release: releases) {
 
     http.request( Method.POST, ContentType.JSON ) { req ->
         uri.path = 'release'
-        def attr = [ "title" : release.title, "url" : release.url, "snippet" : release.snippet, "releaseDate" : release.releaseDate, "site": release.site ]
+        def attr = [ "title" : release.title, "url" : release.url, "snippet" : release.snippet, "dateCreated" : release.dateCreated, "releaseDate": release.releaseDate , "site": release.site ]
         body = (attr as JSON).toString()
         response.success = { resp, reader ->
             println "Got response: ${resp.statusLine}"
@@ -146,6 +147,7 @@ class CrawlerExtender extends WebCrawler {
     private String createdMeta;
     private String descriptionMeta;
     private String agency;
+    private String createRegex;
 
     @Override public void onStart() {
         String[] customData = (String[]) myController.getCustomData();
@@ -153,6 +155,7 @@ class CrawlerExtender extends WebCrawler {
         createdMeta = customData[1];
         descriptionMeta = customData[2];
         agency = customData[3];
+        createRegex = customData[4];
         myController.setCustomData(new ArrayList<Release>(0));
     }
 
@@ -195,8 +198,8 @@ class CrawlerExtender extends WebCrawler {
                 String created = createdElements.get(0).attr("content");
                 println("Created: [" + created + "]");
                 println("Description: [" + description + "]");
-
-                Release release = new Release(title: htmlParseData.getTitle(), snippet: description, url: page.getWebURL().getURL(), releaseDate: new Date());
+                Date createdDate = Date.parse(createRegex, created)
+                Release release = new Release(title: htmlParseData.getTitle(), snippet: description, url: page.getWebURL().getURL(), releaseDate: createdDate);
 
                 ((List<Release>)myController.getCustomData()).add(release)
             }

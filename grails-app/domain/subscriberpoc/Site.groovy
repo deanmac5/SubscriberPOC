@@ -5,6 +5,7 @@ class Site {
     String url
     String description
     String created
+    String createdRegex
 
     static constraints = {
     }

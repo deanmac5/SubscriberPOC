@@ -10,9 +10,13 @@ class Release {
     String title
     String snippet
     Date releaseDate
+    Date dateCreated
 
     static belongsTo = [site: Site]
 
+    static mapping = {
+        autoTimestamp true
+    }
 
 
     static constraints = {
