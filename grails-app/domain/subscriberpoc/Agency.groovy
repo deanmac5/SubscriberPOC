@@ -4,12 +4,12 @@ class Agency {
 
     String title
     String portfolio
-    List mediaLists
+//    List sites
 
-    static hasMany = [releases: Release, mediaLists: MediaList]
+    static hasMany = [sites: Site]
 
     static mapping = {
-        mediaLists lazy: false
+        sites lazy: false
     }
 
 

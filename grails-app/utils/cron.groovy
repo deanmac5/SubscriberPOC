@@ -15,13 +15,12 @@ import grails.converters.JSON
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
-import groovyx.net.http.RESTClient
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import subscriberpoc.Agency
-import subscriberpoc.MediaList
 import subscriberpoc.Release
+import subscriberpoc.Site
 
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -31,7 +30,7 @@ long lStartTime = new Date().getTime();
 def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
 
 Gson gson = new Gson()
-List<MediaList> mediaListList = new ArrayList<>(0);
+List<Site> mediaListList = new ArrayList<>(0);
 List<Release> releases = new ArrayList<>(0)
 
 http.request( Method.GET, ContentType.TEXT ) { req ->
@@ -44,7 +43,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
         println readerText
         JsonArray mediaListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
         for (JsonElement mediaListJson : mediaListJsonArray) {
-            MediaList mediaList = gson.fromJson(mediaListJson, MediaList.class)
+            Site mediaList = gson.fromJson(mediaListJson, Site.class)
             mediaListList.add(mediaList)
         }
     }
@@ -66,7 +65,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
             JsonArray mediaLists = agencyJson.get("mediaLists").getAsJsonArray();
 
             for(JsonElement mediaListJson : mediaLists) {
-                MediaList mediaList = gson.fromJson(mediaListJson, MediaList.class)
+                Site mediaList = gson.fromJson(mediaListJson, Site.class)
                 println mediaList.id
 
                 mediaList = mediaListList.find{ ( it.id == mediaList.id ) }

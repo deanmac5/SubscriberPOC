@@ -11,7 +11,7 @@ class Release {
     String snippet
     Date releaseDate
 
-    static belongsTo = [agency: Agency]
+    static belongsTo = [site: Site]
 
 
 

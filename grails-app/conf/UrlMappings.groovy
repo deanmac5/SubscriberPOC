@@ -11,7 +11,7 @@ class UrlMappings {
         "500"(view:'/error')
 
         "/api/agency"(resources: 'agency')
-        "/api/mediaList"(resources: 'mediaList')
+        "/api/site"(resources: 'site')
         "/api/release"(resources: 'release')
 	}
 }

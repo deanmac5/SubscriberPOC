@@ -1,6 +1,6 @@
 package subscriberpoc
 
-class MediaList {
+class Site {
 
     String url
     String description
@@ -10,8 +10,13 @@ class MediaList {
     }
 
     static belongsTo = [agency: Agency]
+    static hasMany = [releases: Release]
 
     static mapping = {
         agency lazy: false
+    }
+
+    String toString(){
+        return url
     }
 }
