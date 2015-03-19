@@ -18,10 +18,13 @@ class Release {
         autoTimestamp true
     }
 
-
     static constraints = {
         title blank: false
         url url: true
         snippet maxSize:  1024
+    }
+
+    String toString(){
+        return title
     }
 }
