@@ -139,7 +139,7 @@ for(Release release: releasesList) {
     def jsonConvert = release as JSON;
     println "JSON convert [" + jsonConvert.toString(true) + "]"
 
-    //Do findBy snippet + title + site, if found don't add.
+    //Do findBy snippet + title + site, if found don't add. (FIX THIS)
     Release existingRelease = existingReleases.find { it.title == release.title && it.snippet == release.snippet && it.site == release.site }
 
     if( existingRelease == null ) {
@@ -216,6 +216,7 @@ class CrawlerExtender extends WebCrawler {
             Document doc = Jsoup.parse(html);
             Elements descriptionElements = doc.select("meta[name=" + descriptionMeta + "]");
             Elements createdElements = doc.select("meta[name=" + createdMeta + "]")
+            //Elements customSelector = doc.select("body[class='node-type-media-releases']")
             if(descriptionElements != null && !descriptionElements.isEmpty() && createdElements != null && !createdElements.isEmpty()) {
                 String description = descriptionElements.get(0).attr("content");
                 String created = createdElements.get(0).attr("content");
