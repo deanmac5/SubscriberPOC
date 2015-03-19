@@ -6,6 +6,7 @@ class Site {
     String description
     String created
     String createdRegex
+    String mediaReleaseSelector
 
     static constraints = {
     }

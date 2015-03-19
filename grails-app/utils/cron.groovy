@@ -82,7 +82,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 config.setPolitenessDelay(1000);
                 config.setMaxDepthOfCrawling(1);
                 //Change this to -1 when proper testing
-                config.setMaxPagesToFetch(6);
+                config.setMaxPagesToFetch(50);
 
                 config.setIncludeBinaryContentInCrawling(false);
                 config.setResumableCrawling(false);
@@ -91,12 +91,13 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 RobotstxtConfig robotsTxtConfig = new RobotstxtConfig();
                 RobotstxtServer robotsTxtServer = new RobotstxtServer(robotsTxtConfig, pageFetcher);
                 CrawlController controller = new CrawlController(config, pageFetcher, robotsTxtServer);
-                String[] customData = new String[5];
+                String[] customData = new String[6];
                 customData[0] = siteList.url.toURI().getScheme() + "://" + siteList.url.toURI().getHost();
                 customData[1] = siteList.created
                 customData[2] = siteList.description
                 customData[3] = agency.title
                 customData[4] = siteList.createdRegex
+                customData[5] = siteList.mediaReleaseSelector
                 controller.setCustomData(customData)
 
                 controller.addSeed(siteList.url);
@@ -172,6 +173,7 @@ class CrawlerExtender extends WebCrawler {
     private String descriptionMeta;
     private String agency;
     private String createRegex;
+    private String mediaReleaseSelector
 
     @Override public void onStart() {
         String[] customData = (String[]) myController.getCustomData();
@@ -180,6 +182,7 @@ class CrawlerExtender extends WebCrawler {
         descriptionMeta = customData[2];
         agency = customData[3];
         createRegex = customData[4];
+        mediaReleaseSelector = customData[5]
         myController.setCustomData(new ArrayList<Release>(0));
     }
 
@@ -217,7 +220,13 @@ class CrawlerExtender extends WebCrawler {
             Document doc = Jsoup.parse(html);
             Elements descriptionElements = doc.select("meta[name=" + descriptionMeta + "]");
             Elements createdElements = doc.select("meta[name=" + createdMeta + "]")
-            //Elements customSelector = doc.select("body[class='node-type-media-releases']")
+            if(mediaReleaseSelector != null) {
+                Elements mediaReleaseSelector = doc.select(mediaReleaseSelector)
+                if(mediaReleaseSelector == null || mediaReleaseSelector.isEmpty()) {
+                    println "Doesn't match mediarelease selector"
+                    return
+                }
+            }
             if(descriptionElements != null && !descriptionElements.isEmpty() && createdElements != null && !createdElements.isEmpty()) {
                 String description = descriptionElements.get(0).attr("content");
                 String created = createdElements.get(0).attr("content");
