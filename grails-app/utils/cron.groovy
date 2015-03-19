@@ -32,6 +32,7 @@ def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
 Gson gson = new Gson()
 List<Site> sitesList = new ArrayList<>(0);
 List<Release> releasesList = new ArrayList<>(0)
+List<Release> existingReleases = new ArrayList<>(0)
 
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'site'
@@ -116,25 +117,46 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
     }
 }
 
+println "Found [" + releasesList.size() + "] media releases"
+http.request( Method.GET, ContentType.TEXT ) { req ->
+    uri.path = 'release'
+    headers.Accept = 'application/json'
+
+    response.success = { resp, reader ->
+        println "Got response: ${resp.statusLine}"
+        def readerText = reader.text
+        println readerText
+        JsonArray releasesListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
+        for (JsonElement releaseListJson : releasesListJsonArray) {
+            Release releaseList = gson.fromJson(releaseListJson, Release.class)
+            existingReleases.add(releaseList)
+        }
+    }
+}
+println "Found [" + existingReleases + "] existing media releases"
 
 for(Release release: releasesList) {
-    println "Adding in release [" + release.title + "]"
-
     def jsonConvert = release as JSON;
     println "JSON convert [" + jsonConvert.toString(true) + "]"
 
+    //Do findBy snippet + title + site, if found don't add.
+    Release existingRelease = existingReleases.find { it.title == release.title && it.snippet == release.snippet && it.site == release.site }
 
-
-    http.request( Method.POST, ContentType.JSON ) { req ->
-        uri.path = 'release'
-        def attr = [ "title" : release.title, "url" : release.url, "snippet" : release.snippet, "dateCreated" : release.dateCreated, "releaseDate": release.releaseDate , "site": release.site ]
-        body = (attr as JSON).toString()
-        response.success = { resp, reader ->
-            println "Got response: ${resp.statusLine}"
+    if( existingRelease == null ) {
+        println "Adding in release [" + release.title + "]"
+        http.request(Method.POST, ContentType.JSON) { req ->
+            uri.path = 'release'
+            def attr = ["title": release.title, "url": release.url, "snippet": release.snippet, "dateCreated": release.dateCreated, "releaseDate": release.releaseDate, "site": release.site]
+            body = (attr as JSON).toString()
+            response.success = { resp, reader ->
+                println "Got response: ${resp.statusLine}"
+            }
+            response.failure = { resp ->
+                println "Unexpected error: ${resp}"
+            }
         }
-        response.failure = { resp ->
-            println "Unexpected error: ${resp}"
-        }
+    } else {
+        println "Release [" + release.title + "] already exists"
     }
 
 }
