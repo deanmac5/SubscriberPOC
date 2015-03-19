@@ -30,21 +30,21 @@ long lStartTime = new Date().getTime();
 def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
 
 Gson gson = new Gson()
-List<Site> mediaListList = new ArrayList<>(0);
+List<Site> sitesList = new ArrayList<>(0);
 List<Release> releases = new ArrayList<>(0)
 
 http.request( Method.GET, ContentType.TEXT ) { req ->
-    uri.path = 'mediaList'
+    uri.path = 'site'
     headers.Accept = 'application/json'
 
     response.success = { resp, reader ->
         println "Got response: ${resp.statusLine}"
         def readerText = reader.text
         println readerText
-        JsonArray mediaListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
-        for (JsonElement mediaListJson : mediaListJsonArray) {
-            Site mediaList = gson.fromJson(mediaListJson, Site.class)
-            mediaListList.add(mediaList)
+        JsonArray sitesListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
+        for (JsonElement siteListJson : sitesListJsonArray) {
+            Site siteList = gson.fromJson(siteListJson, Site.class)
+            sitesList.add(siteList)
         }
     }
 }
@@ -62,17 +62,17 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
         for (JsonElement agencyJson : agencyJsonArray) {
             Agency agency = gson.fromJson(agencyJson, Agency.class)
             println "Agency Title: " + agency.title
-            JsonArray mediaLists = agencyJson.get("mediaLists").getAsJsonArray();
+            JsonArray siteLists = agencyJson.get("sites").getAsJsonArray();
 
-            for(JsonElement mediaListJson : mediaLists) {
-                Site mediaList = gson.fromJson(mediaListJson, Site.class)
-                println mediaList.id
+            for(JsonElement siteListJson : siteLists) {
+                Site siteList = gson.fromJson(siteListJson, Site.class)
+                println siteList.id
 
-                mediaList = mediaListList.find{ ( it.id == mediaList.id ) }
-                println "Starting crawl of URL [" + mediaList.url + "] with id [" + mediaList.id + "]"
-                println "HOST [" + mediaList.url.toURI().getHost() + "]"
+                siteList = sitesList.find{ ( it.id == siteList.id ) }
+                println "Starting crawl of URL [" + siteList.url + "] with id [" + siteList.id + "]"
+                println "HOST [" + siteList.url.toURI().getHost() + "]"
 
-                String crawlStorageFolder = "/tmp/" + mediaList.url.toURI().getHost() + "/";
+                String crawlStorageFolder = "/tmp/" + siteList.url.toURI().getHost() + "/";
 
                 int numberOfCrawlers = 1;
                 CrawlConfig config = new CrawlConfig();
@@ -91,22 +91,22 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                 RobotstxtServer robotsTxtServer = new RobotstxtServer(robotsTxtConfig, pageFetcher);
                 CrawlController controller = new CrawlController(config, pageFetcher, robotsTxtServer);
                 String[] customData = new String[4];
-                customData[0] = mediaList.url.toURI().getScheme() + "://" + mediaList.url.toURI().getHost();
-                customData[1] = mediaList.created
-                customData[2] = mediaList.description
+                customData[0] = siteList.url.toURI().getScheme() + "://" + siteList.url.toURI().getHost();
+                customData[1] = siteList.created
+                customData[2] = siteList.description
                 customData[3] = agency.title
                 controller.setCustomData(customData)
 
-                controller.addSeed(mediaList.url);
+                controller.addSeed(siteList.url);
 
                 controller.start(CrawlerExtender.class, numberOfCrawlers);
 
                 releases = controller.getCustomData();
                 for(Release release: releases) {
-                    release.agency = agency
+                    release.site = siteList
                 }
 
-                println("Crawl of [" + mediaList.url.toURI().getHost() + "] finished with [" + releases.size() + "] possible media releases found");
+                println("Crawl of [" + siteList.url.toURI().getHost() + "] finished with [" + releases.size() + "] possible media releases found");
                 println "Script running for [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
             }
         }
@@ -123,12 +123,10 @@ for(Release release: releases) {
 
 
 
-    http.post( Method.POST, ContentType.JSON ) { req ->
+    http.request( Method.POST, ContentType.JSON ) { req ->
         uri.path = 'release'
-        headers.Accept = 'application/json'
-
-        body = [ "title" : release.title, "url" : release.url, "snippet" : release.snippet, "releaseDate" : release.releaseDate ]
-
+        def attr = [ "title" : release.title, "url" : release.url, "snippet" : release.snippet, "releaseDate" : release.releaseDate ]
+        body = (attr as JSON).toString()
         response.success = { resp, reader ->
             println "Got response: ${resp.statusLine}"
         }
