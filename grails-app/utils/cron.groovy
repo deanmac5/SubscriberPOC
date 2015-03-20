@@ -25,6 +25,18 @@ import subscriberpoc.Site
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
+
+String ANSI_RESET = "\u001B[0m";
+String ANSI_RED = "\u001B[31m";
+String ANSI_GREEN = "\u001B[32m";
+String ANSI_YELLOW = "\u001B[33m";
+String ANSI_BLUE = "\u001B[34m";
+String ANSI_PURPLE = "\u001B[35m";
+String ANSI_CYAN = "\u001B[36m";
+
+println(ANSI_RED + "This text is red!" + ANSI_RESET)
+
+
 long lStartTime = new Date().getTime();
 
 def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
@@ -187,7 +199,7 @@ class CrawlerExtender extends WebCrawler {
     }
 
     @Override
-    public boolean shouldVisit(WebURL url) {
+    public boolean shouldVisit(Page page, WebURL url) {
         String href = url.getURL().toLowerCase();
         if (FILTERS.matcher(href).matches()) {
             return false;
