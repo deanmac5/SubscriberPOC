@@ -32,58 +32,58 @@ String ANSI_GREEN = "\u001B[32m";
 String ANSI_YELLOW = "\u001B[33m";
 String ANSI_BLUE = "\u001B[34m";
 String ANSI_PURPLE = "\u001B[35m";
-String ANSI_CYAN = "\u001B[36m";
 
-println(ANSI_RED + "This text is red!" + ANSI_RESET)
+String url = "http://localhost:8080/SubscriberPOC/api/";
+Date startDate = new Date();
+long lStartTime = startDate.getTime();
+
+println(ANSI_RED + "Running Media Release Crawler" + ANSI_RESET)
+println(ANSI_PURPLE + "Start time: " + ANSI_YELLOW + startDate.toString() + ANSI_RESET)
+println(ANSI_PURPLE + "URL: " + ANSI_YELLOW + url + ANSI_RESET)
 
 
-long lStartTime = new Date().getTime();
-
-def http = new HTTPBuilder('http://localhost:8080/SubscriberPOC/api/')
+def http = new HTTPBuilder(url)
 
 Gson gson = new Gson()
 List<Site> sitesList = new ArrayList<>(0);
 List<Release> releasesList = new ArrayList<>(0)
 List<Release> existingReleases = new ArrayList<>(0)
 
+println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'site...' + ANSI_RESET)
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'site'
     headers.Accept = 'application/json'
 
     response.success = { resp, reader ->
-        println "Got response: ${resp.statusLine}"
+        print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
         def readerText = reader.text
-        println readerText
         JsonArray sitesListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
         for (JsonElement siteListJson : sitesListJsonArray) {
             Site siteList = gson.fromJson(siteListJson, Site.class)
             sitesList.add(siteList)
         }
+        println(ANSI_PURPLE + "Number of sites: " + ANSI_YELLOW + sitesList.size() + ANSI_RESET)
     }
 }
 
+println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'agency...' + ANSI_RESET)
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'agency'
     headers.Accept = 'application/json'
 
     response.success = { resp, reader ->
-        println "Got response: ${resp.statusLine}"
+        print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
         def readerText = reader.text
-        println readerText
-
         JsonArray agencyJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
         for (JsonElement agencyJson : agencyJsonArray) {
             Agency agency = gson.fromJson(agencyJson, Agency.class)
-            println "Agency Title: " + agency.title
+            println(ANSI_PURPLE + "Agency Title: " + ANSI_YELLOW + agency.title + ANSI_RESET)
             JsonArray siteLists = agencyJson.get("sites").getAsJsonArray();
 
             for(JsonElement siteListJson : siteLists) {
                 Site siteList = gson.fromJson(siteListJson, Site.class)
-                println siteList.id
-
                 siteList = sitesList.find{ ( it.id == siteList.id ) }
-                println "Starting crawl of URL [" + siteList.url + "] with id [" + siteList.id + "]"
-                println "HOST [" + siteList.url.toURI().getHost() + "]"
+                println(ANSI_PURPLE + "Starting Crawl on: " + ANSI_YELLOW + siteList.url + ANSI_RESET)
 
                 String crawlStorageFolder = "/tmp/" + siteList.url.toURI().getHost() + "/";
 
@@ -122,23 +122,27 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
                     releasesList.add(release)
                 }
 
-                println("Crawl of [" + siteList.url.toURI().getHost() + "] finished with [" + releases.size() + "] possible media releases found");
-                println "Script running for [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
+                println(ANSI_PURPLE + "Finished Crawl on: " + ANSI_YELLOW + siteList.url + ANSI_RESET)
+                println(ANSI_PURPLE + "Number of Media Releases Found: " + ANSI_YELLOW + releases.size() + ANSI_RESET)
+                println(ANSI_RED + "Script running for [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]" + ANSI_RESET)
+                println()
+                println()
             }
         }
-        println "Time to run [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]"
+        println(ANSI_RED + "Complete Crawl finished in [" + getDurationBreakdown(new Date().getTime() - lStartTime) + "]")
     }
 }
 
-println "Found [" + releasesList.size() + "] media releases"
+println(ANSI_PURPLE + "Total number of Media Releases Found: " + ANSI_YELLOW + releasesList.size() + ANSI_RESET)
+
+println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'release...' + ANSI_RESET)
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'release'
     headers.Accept = 'application/json'
 
     response.success = { resp, reader ->
-        println "Got response: ${resp.statusLine}"
+        print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
         def readerText = reader.text
-        println readerText
         JsonArray releasesListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
         for (JsonElement releaseListJson : releasesListJsonArray) {
             Release releaseList = gson.fromJson(releaseListJson, Release.class)
@@ -146,32 +150,32 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
         }
     }
 }
-println "Found [" + existingReleases + "] existing media releases"
-
+println(ANSI_PURPLE + "Existing Media Releases found: " + ANSI_YELLOW + existingReleases.size() + ANSI_RESET)
+println(ANSI_PURPLE + "Number of New Media Releases been added: " + ANSI_YELLOW + (releasesList.size() - existingReleases.size()) + ANSI_RESET)
 for(Release release: releasesList) {
-    def jsonConvert = release as JSON;
-    println "JSON convert [" + jsonConvert.toString(true) + "]"
-
-    //Do findBy snippet + title + site, if found don't add.
     Closure closureRelease = { it.title == release.title && it.snippet == release.snippet && it.site.url == release.site.url }
     Release existingRelease = existingReleases.find { closureRelease }
 
     if( existingRelease == null ) {
-        println "Adding in release [" + release.title + "]"
+        println(ANSI_PURPLE + "Adding release: " + ANSI_YELLOW + release.title + ANSI_RESET)
+        println(ANSI_RED + "Performing POST on: " + ANSI_YELLOW + 'release...' + ANSI_RESET)
         http.request(Method.POST, ContentType.JSON) { req ->
             uri.path = 'release'
             def attr = ["title": release.title, "url": release.url, "snippet": release.snippet, "dateCreated": release.dateCreated, "releaseDate": release.releaseDate, "site": release.site]
             body = (attr as JSON).toString()
             response.success = { resp, reader ->
-                println "Got response: ${resp.statusLine}"
+                print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
+                println(ANSI_GREEN + "Media Release: " + release.title + " added" + ANSI_RESET)
             }
             response.failure = { resp ->
-                println "Unexpected error: ${resp}"
+                println(ANSI_RED + "Unexpected error: ${resp}" + ANSI_RESET)
             }
         }
     } else {
-        println "Release [" + release.title + "] already exists"
+        println(ANSI_BLUE + "Release [" + release.title + "] already exists" + ANSI_RESET)
     }
+
+    println("=============");
 
 }
 
@@ -186,6 +190,13 @@ class CrawlerExtender extends WebCrawler {
     private String agency;
     private String createRegex;
     private String mediaReleaseSelector
+
+    String ANSI_RESET = "\u001B[0m";
+    String ANSI_RED = "\u001B[31m";
+    String ANSI_GREEN = "\u001B[32m";
+    String ANSI_YELLOW = "\u001B[33m";
+    String ANSI_BLUE = "\u001B[34m";
+    String ANSI_PURPLE = "\u001B[35m";
 
     @Override public void onStart() {
         String[] customData = (String[]) myController.getCustomData();
@@ -205,7 +216,6 @@ class CrawlerExtender extends WebCrawler {
             return false;
         }
 
-        println "Check that [" + href + "] starts with [" + myCrawlDomains + "]"
         if (href.startsWith(myCrawlDomains)) {
             return true;
         }
@@ -214,20 +224,13 @@ class CrawlerExtender extends WebCrawler {
 
     @Override
     public void visit(Page page) {
-        int docid = page.getWebURL().getDocid();
         String url = page.getWebURL().getURL();
-        int parentDocid = page.getWebURL().getParentDocid();
-        println("Docid [" + docid + "]");
-        println("URL: [" + url + "]");
-        println("Docid of parent page: [" +  parentDocid + "]");
+        println(ANSI_PURPLE + "URL: [" + ANSI_YELLOW + url + ANSI_PURPLE + "]" + ANSI_RESET);
 
         if (page.getParseData() instanceof HtmlParseData) {
             HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
             String html = htmlParseData.getHtml();
-            Set<WebURL> links = htmlParseData.getOutgoingUrls();
-            println("Title: [" + htmlParseData.getTitle() + "]")
-            println("HtmlHeader length: [" + html.length() + "]");
-            println("Number of outgoing links: [" + links.size() + "]");
+            println(ANSI_PURPLE + "Title: [" + ANSI_YELLOW + htmlParseData.getTitle() + ANSI_PURPLE + "]" + ANSI_RESET);
 
             Document doc = Jsoup.parse(html);
             Elements descriptionElements = doc.select("meta[name=" + descriptionMeta + "]");
@@ -235,19 +238,19 @@ class CrawlerExtender extends WebCrawler {
             if(mediaReleaseSelector != null) {
                 Elements mediaReleaseSelector = doc.select(mediaReleaseSelector)
                 if(mediaReleaseSelector == null || mediaReleaseSelector.isEmpty()) {
-                    println "Doesn't match mediarelease selector"
+                    println(ANSI_RED + "Not a media release" + ANSI_RESET)
+                    println("=============");
                     return
                 }
             }
             if(descriptionElements != null && !descriptionElements.isEmpty() && createdElements != null && !createdElements.isEmpty()) {
                 String description = descriptionElements.get(0).attr("content");
                 String created = createdElements.get(0).attr("content");
-                println("Created: [" + created + "]");
-                println("Description: [" + description + "]");
                 Date createdDate = Date.parse(createRegex, created)
                 Release release = new Release(title: htmlParseData.getTitle(), snippet: description, url: page.getWebURL().getURL(), releaseDate: createdDate);
 
                 ((List<Release>)myController.getCustomData()).add(release)
+                println(ANSI_GREEN + "Media Release found" + ANSI_RESET)
             }
         }
         println("=============");
