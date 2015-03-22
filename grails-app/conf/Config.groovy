@@ -59,6 +59,14 @@ grails {
     }
 }
 
+grails {
+    mail {
+        host = 'localhost'
+        port = 25
+        //overrideAddress = "no-one@localhost.com"
+    }
+}
+
 
 grails.converters.encoding = "UTF-8"
 // scaffolding templates configuration

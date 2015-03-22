@@ -22,8 +22,24 @@ import subscriberpoc.Agency
 import subscriberpoc.Release
 import subscriberpoc.Site
 
+import javax.mail.Message
+import javax.mail.Session
+import javax.mail.Transport
+import javax.mail.internet.InternetAddress
+import javax.mail.internet.MimeMessage
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+
+String host = "localhost"
+String port = "25"
+String from = "noreply@localhost";
+
+Properties properties = System.getProperties();
+properties.setProperty("mail.smtp.host", host);
+properties.setProperty("mail.smtp.port", port)
+properties.put("mail.debug", "true");
+
+Session session = Session.getInstance(properties);
 
 
 String ANSI_RESET = "\u001B[0m";
@@ -40,6 +56,7 @@ long lStartTime = startDate.getTime();
 println(ANSI_RED + "Running Media Release Crawler" + ANSI_RESET)
 println(ANSI_PURPLE + "Start time: " + ANSI_YELLOW + startDate.toString() + ANSI_RESET)
 println(ANSI_PURPLE + "URL: " + ANSI_YELLOW + url + ANSI_RESET)
+println(ANSI_PURPLE + "Email Server: " + ANSI_YELLOW + host + ":" + port + " - " + from + ANSI_RESET)
 
 
 def http = new HTTPBuilder(url)
@@ -150,6 +167,9 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
         }
     }
 }
+
+List<Release> releasesAdded = new ArrayList<>(0);
+
 println(ANSI_PURPLE + "Existing Media Releases found: " + ANSI_YELLOW + existingReleases.size() + ANSI_RESET)
 println(ANSI_PURPLE + "Number of New Media Releases been added: " + ANSI_YELLOW + (releasesList.size() - existingReleases.size()) + ANSI_RESET)
 for(Release release: releasesList) {
@@ -166,6 +186,7 @@ for(Release release: releasesList) {
             response.success = { resp, reader ->
                 print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
                 println(ANSI_GREEN + "Media Release: " + release.title + " added" + ANSI_RESET)
+                releasesAdded.add(release)
             }
             response.failure = { resp ->
                 println(ANSI_RED + "Unexpected error: ${resp}" + ANSI_RESET)
@@ -179,6 +200,24 @@ for(Release release: releasesList) {
 
 }
 
+if(!releasesAdded.isEmpty()) {
+    println(ANSI_BLUE + "Sending test email" + ANSI_RESET)
+    String releaseString = "<h1>Media Releases</h1>"
+    releasesAdded.each { releaseString = releaseString + it.toEmailFormat() };
+    println(ANSI_YELLOW + releaseString + ANSI_RESET)
+
+    String to = "mediareleasetester@gmail.com";
+    MimeMessage message = new MimeMessage(session);
+
+    message.setFrom(new InternetAddress(from));
+    message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+    message.setSubject("Media Releases");
+    message.setText(releaseString, "utf-8", "html");
+
+    Transport.send(message);
+} else {
+    println(ANSI_RED + "No new releases to send email for" + ANSI_RESET)
+}
 
 class CrawlerExtender extends WebCrawler {
 
@@ -195,7 +234,6 @@ class CrawlerExtender extends WebCrawler {
     String ANSI_RED = "\u001B[31m";
     String ANSI_GREEN = "\u001B[32m";
     String ANSI_YELLOW = "\u001B[33m";
-    String ANSI_BLUE = "\u001B[34m";
     String ANSI_PURPLE = "\u001B[35m";
 
     @Override public void onStart() {
@@ -256,6 +294,8 @@ class CrawlerExtender extends WebCrawler {
         println("=============");
     }
 }
+
+
 
 /**
  * Convert a millisecond duration to a string format

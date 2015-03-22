@@ -29,4 +29,8 @@ class Release {
     String toString(){
         return title
     }
+
+    String toEmailFormat() {
+        return "<h2><a href='" + url + "'>" + title + "</a></h2>" + "<p>" + snippet + "</p>"
+    }
 }
