@@ -46,7 +46,7 @@ String from = "noreply@localhost";
 Properties properties = System.getProperties();
 properties.setProperty("mail.smtp.host", host);
 properties.setProperty("mail.smtp.port", port)
-properties.put("mail.debug", "true");
+properties.put("mail.debug", "false");
 
 Session session = Session.getInstance(properties);
 
@@ -224,7 +224,6 @@ if(!releasesAdded.isEmpty()) {
                     agencyListItem = agencyList.find{ ( it.id == agencyListItem.id ) }
                     subscriberList.addToSubscriptions(agencyListItem)
                     subscribers.add(subscriberList)
-                    println("Added " + agencyListItem.toString() + " to " + subscriberList.name)
                 }
             }
         }
@@ -245,9 +244,9 @@ if(!releasesAdded.isEmpty()) {
             String releaseString = "<h1>Media Releases</h1>"
             releaseString += "<h2>Your Subscriptions</h2>"
             releaseString += "<ul>"
-            subscriber.subscriptions.each { releaseString = releaseString + "<li>" + it.portfolio + "</li>" };
+            subscriber.subscriptions.each { if(it.portfolio != null && !it.portfolio.equals("")) {releaseString = releaseString + "<li>" + it.portfolio + "</li>"} };
             releaseString += "</ul>"
-            releasesAdded.each { releaseString = releaseString + it.toEmailFormat() };
+            releases.each { releaseString = releaseString + it.toEmailFormat() };
 
             String to = subscriber.email;
             MimeMessage message = new MimeMessage(session);
