@@ -25,9 +25,9 @@
 		<g:message code="subscriber.subscriptions.label" default="Agency subscriptions:" />
 
 	</label>
-    <g:each in="${subscriberpoc.Agency.list()}" var="agency">
+    <g:each in="${subscriberpoc.Agency.list()}" var="agency" status="i">
         ${agency.title}
-        <g:checkBox name="agency[${i}]?.id"  value="${agency.title}" checked="${}"  class="many-to-many"/>
+        <g:checkBox name="agency" value="${agency.id}" class="many-to-many"/>
 
     </g:each>
 
