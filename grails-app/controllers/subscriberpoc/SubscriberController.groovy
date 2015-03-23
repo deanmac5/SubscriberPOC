@@ -1,17 +1,24 @@
 package subscriberpoc
 
 import com.drew.metadata.Age
+import grails.rest.RestfulController
 import org.apache.commons.logging.LogFactory
 
 import static org.springframework.http.HttpStatus.*
 import grails.transaction.Transactional
 
 @Transactional(readOnly = true)
-class SubscriberController {
+class SubscriberController extends RestfulController {
 
     private static final log = LogFactory.getLog(this)
 
-    static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
+    static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE", index: "GET"]
+
+    static responseFormats = ['html', 'json', 'xml']
+
+    SubscriberController() {
+        super(Subscriber)
+    }
 
     def index(Integer max) {
         params.max = Math.min(max ?: 10, 100)

@@ -13,8 +13,10 @@ class UrlMappings {
         "/api/agency"(resources: 'agency')
         "/api/site"(resources: 'site')
         "/api/release"(resources: 'release')
+        "/api/subscriber"(resources: 'subscriber')
         "/agency"(resources: 'agency')
         "/site"(resources: 'site')
         "/release"(resources: 'release')
+        "/subscriber"(resources: 'subscriber')
 	}
 }
