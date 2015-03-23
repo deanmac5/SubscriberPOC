@@ -201,10 +201,9 @@ for(Release release: releasesList) {
 }
 
 if(!releasesAdded.isEmpty()) {
-    println(ANSI_BLUE + "Sending test email" + ANSI_RESET)
+    println(ANSI_BLUE + "Sending test email with [" + releasesAdded.size() + "] media releases" + ANSI_RESET)
     String releaseString = "<h1>Media Releases</h1>"
     releasesAdded.each { releaseString = releaseString + it.toEmailFormat() };
-    println(ANSI_YELLOW + releaseString + ANSI_RESET)
 
     String to = "mediareleasetester@gmail.com";
     MimeMessage message = new MimeMessage(session);
