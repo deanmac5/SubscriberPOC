@@ -21,6 +21,7 @@ import org.jsoup.select.Elements
 import subscriberpoc.Agency
 import subscriberpoc.Release
 import subscriberpoc.Site
+import subscriberpoc.Subscriber
 
 import javax.mail.Message
 import javax.mail.Session
@@ -29,6 +30,14 @@ import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+
+
+String ANSI_RESET = "\u001B[0m";
+String ANSI_RED = "\u001B[31m";
+String ANSI_GREEN = "\u001B[32m";
+String ANSI_YELLOW = "\u001B[33m";
+String ANSI_BLUE = "\u001B[34m";
+String ANSI_PURPLE = "\u001B[35m";
 
 String host = "localhost"
 String port = "25"
@@ -41,14 +50,6 @@ properties.put("mail.debug", "true");
 
 Session session = Session.getInstance(properties);
 
-
-String ANSI_RESET = "\u001B[0m";
-String ANSI_RED = "\u001B[31m";
-String ANSI_GREEN = "\u001B[32m";
-String ANSI_YELLOW = "\u001B[33m";
-String ANSI_BLUE = "\u001B[34m";
-String ANSI_PURPLE = "\u001B[35m";
-
 String url = "http://localhost:8080/SubscriberPOC/api/";
 Date startDate = new Date();
 long lStartTime = startDate.getTime();
@@ -60,8 +61,9 @@ println(ANSI_PURPLE + "Email Server: " + ANSI_YELLOW + host + ":" + port + " - "
 
 
 def http = new HTTPBuilder(url)
-
 Gson gson = new Gson()
+List<Agency> agencyList = new ArrayList<>(0)
+List<Agency> subscribers = new ArrayList<>(0)
 List<Site> sitesList = new ArrayList<>(0);
 List<Release> releasesList = new ArrayList<>(0)
 List<Release> existingReleases = new ArrayList<>(0)
@@ -83,6 +85,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
     }
 }
 
+
 println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'agency...' + ANSI_RESET)
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'agency'
@@ -94,6 +97,7 @@ http.request( Method.GET, ContentType.TEXT ) { req ->
         JsonArray agencyJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
         for (JsonElement agencyJson : agencyJsonArray) {
             Agency agency = gson.fromJson(agencyJson, Agency.class)
+            agencyList.add(agency)
             println(ANSI_PURPLE + "Agency Title: " + ANSI_YELLOW + agency.title + ANSI_RESET)
             JsonArray siteLists = agencyJson.get("sites").getAsJsonArray();
 
@@ -202,18 +206,63 @@ for(Release release: releasesList) {
 
 if(!releasesAdded.isEmpty()) {
     println(ANSI_BLUE + "Sending test email with [" + releasesAdded.size() + "] media releases" + ANSI_RESET)
-    String releaseString = "<h1>Media Releases</h1>"
-    releasesAdded.each { releaseString = releaseString + it.toEmailFormat() };
+    //Get Subscribers
+    println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'subscriber...' + ANSI_RESET)
+    http.request( Method.GET, ContentType.TEXT ) { req ->
+        uri.path = 'subscriber'
+        headers.Accept = 'application/json'
 
-    String to = "mediareleasetester@gmail.com";
-    MimeMessage message = new MimeMessage(session);
+        response.success = { resp, reader ->
+            print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
+            def readerText = reader.text
+            JsonArray subscriberListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
+            for (JsonElement subscriberListJson : subscriberListJsonArray) {
+                Subscriber subscriberList = gson.fromJson(subscriberListJson, Subscriber.class)
+                JsonArray subscriptionsLists = subscriberListJson.get("subscriptions").getAsJsonArray();
+                for(JsonElement subscriptionListJson : subscriptionsLists) {
+                    Agency agencyListItem = gson.fromJson(subscriptionListJson, Agency.class)
+                    agencyListItem = agencyList.find{ ( it.id == agencyListItem.id ) }
+                    subscriberList.addToSubscriptions(agencyListItem)
+                    subscribers.add(subscriberList)
+                    println("Added " + agencyListItem.toString() + " to " + subscriberList.name)
+                }
+            }
+        }
+    }
 
-    message.setFrom(new InternetAddress(from));
-    message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-    message.setSubject("Media Releases");
-    message.setText(releaseString, "utf-8", "html");
+    for(Subscriber subscriber: subscribers) {
+        println(ANSI_BLUE + "Checking user " + subscriber.name + ANSI_RESET)
+        List<Release> releases = new ArrayList<>(0)
+        for(Release allReleases: releasesList) {
+            if(subscriber.subscriptions.find( { it.id == allReleases.site.agency.id } )) {
+                releases.add(allReleases)
+            }
+        }
 
-    Transport.send(message);
+        if(!releases.isEmpty()) {
+            println(ANSI_GREEN + "Sending email to [" + ANSI_YELLOW + subscriber.email + ANSI_GREEN + "]" + ANSI_RESET)
+
+            String releaseString = "<h1>Media Releases</h1>"
+            releaseString += "<h2>Your Subscriptions</h2>"
+            releaseString += "<ul>"
+            subscriber.subscriptions.each { releaseString = releaseString + "<li>" + it.portfolio + "</li>" };
+            releaseString += "</ul>"
+            releasesAdded.each { releaseString = releaseString + it.toEmailFormat() };
+
+            String to = subscriber.email;
+            MimeMessage message = new MimeMessage(session);
+
+            message.setFrom(new InternetAddress(from));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+            message.setSubject("Media Releases");
+            message.setText(releaseString, "utf-8", "html");
+
+            Transport.send(message);
+
+        } else {
+            println(ANSI_RED + "Don't send" + ANSI_RESET)
+        }
+    }
 } else {
     println(ANSI_RED + "No new releases to send email for" + ANSI_RESET)
 }
