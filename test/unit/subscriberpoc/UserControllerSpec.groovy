@@ -5,9 +5,9 @@ package subscriberpoc
 import grails.test.mixin.*
 import spock.lang.*
 
-@TestFor(SubscriberController)
+@TestFor(UserController)
 @Mock(Subscriber)
-class SubscriberControllerSpec extends Specification {
+class UserControllerSpec extends Specification {
 
     def populateValidParams(params) {
         assert params != null

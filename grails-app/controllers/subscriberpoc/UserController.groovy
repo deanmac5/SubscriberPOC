@@ -10,7 +10,7 @@ import grails.transaction.Transactional
 
 @Secured(['ROLE_ADMIN'])
 @Transactional(readOnly = true)
-class SubscriberController extends RestfulController {
+class UserController extends RestfulController {
 
     private static final log = LogFactory.getLog(this)
 
@@ -18,7 +18,7 @@ class SubscriberController extends RestfulController {
 
     static responseFormats = ['html', 'json', 'xml']
 
-    SubscriberController() {
+    UserController() {
         super(Subscriber)
     }
 
