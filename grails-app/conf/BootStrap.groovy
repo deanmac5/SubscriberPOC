@@ -1,13 +1,11 @@
-import subscriberpoc.Agency
-import subscriberpoc.Site
-import subscriberpoc.Subscriber
+import subscriberpoc.*
 
 class BootStrap {
 
     def init = { servletContext ->
         environments {
             development {
-
+                if(!User.count()) createUser()
                 if(!Agency.count() && (!Subscriber.count())) createSampleData()
 
             }
@@ -25,5 +23,19 @@ class BootStrap {
         agency2.addToSites(new Site(created: "DCTERMS.date", description: "description", url: "http://www.finance.gov.au/about-the-department/media-centre/secretary/", createdRegex: "yyyy-MM-dd'T'HH:mm", mediaReleaseSelector: "h1:contains(Media Release)")).save()
         new Subscriber(name: "Pablo", email: "mediareleasetester@gmail.com", subscriptions: [Agency.findByTitle("Dept of Industry"), Agency.findByTitle("Dept of Finance")]).save()
         new Subscriber(name: "Deano", email: "mediareleasetester@gmail.com", subscriptions: [Agency.findByTitle("Dept of Finance")]).save()
+    }
+
+    private createUser(){
+        def adminRole = new Role(authority: 'ROLE_ADMIN').save(flush: true)
+        def userRole = new Role(authority: 'ROLE_USER').save(flush: true)
+
+        def testUser = new User(username: 'me', password: 'password')
+        testUser.save(flush: true)
+
+        UserRole.create testUser, adminRole, true
+
+        assert User.count() == 1
+        assert Role.count() == 2
+        assert UserRole.count() == 1
     }
 }

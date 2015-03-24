@@ -1,12 +1,14 @@
 package subscriberpoc
 
 import com.drew.metadata.Age
+import grails.plugin.springsecurity.annotation.Secured
 import grails.rest.RestfulController
 import org.apache.commons.logging.LogFactory
 
 import static org.springframework.http.HttpStatus.*
 import grails.transaction.Transactional
 
+@Secured(['ROLE_ADMIN'])
 @Transactional(readOnly = true)
 class SubscriberController extends RestfulController {
 
