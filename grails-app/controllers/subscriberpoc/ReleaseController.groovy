@@ -13,13 +13,4 @@ class ReleaseController extends RestfulController {
     ReleaseController() {
         super(Release)
     }
-
-    def index(Integer max) {
-        if(params["format"] == "json") {
-           render Release.list() as JSON
-        } else {
-            respond Release.list()
-        }
-
-    }
 }
