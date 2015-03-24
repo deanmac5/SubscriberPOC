@@ -21,7 +21,7 @@ import org.jsoup.select.Elements
 import subscriberpoc.Agency
 import subscriberpoc.Release
 import subscriberpoc.Site
-import subscriberpoc.Subscriber
+import subscriberpoc.User
 
 import javax.mail.Message
 import javax.mail.Session
@@ -236,7 +236,7 @@ if(!releasesAdded.isEmpty()) {
             def readerText = reader.text
             JsonArray subscriberListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
             for (JsonElement subscriberListJson : subscriberListJsonArray) {
-                Subscriber subscriberList = gson.fromJson(subscriberListJson, Subscriber.class)
+                User subscriberList = gson.fromJson(subscriberListJson, User.class)
                 JsonArray subscriptionsLists = subscriberListJson.get("subscriptions").getAsJsonArray();
                 for(JsonElement subscriptionListJson : subscriptionsLists) {
                     Agency agencyListItem = gson.fromJson(subscriptionListJson, Agency.class)
@@ -248,8 +248,8 @@ if(!releasesAdded.isEmpty()) {
         }
     }
 
-    for(Subscriber subscriber: subscribers) {
-        println(ANSI_BLUE + "Checking user " + subscriber.name + ANSI_RESET)
+    for(User subscriber: subscribers) {
+        println(ANSI_BLUE + "Checking user " + subscriber.username + ANSI_RESET)
         List<Release> releases = new ArrayList<>(0)
         for(Release allReleases: releasesList) {
             if(subscriber.subscriptions.find( { it.id == allReleases.site.agency.id } )) {

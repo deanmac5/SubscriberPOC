@@ -6,7 +6,7 @@ class BootStrap {
         environments {
             development {
 
-                if(!Agency.count() && (!Subscriber.count())) createSampleData()
+                if(!Agency.count() && (!User.count())) createSampleData()
 
             }
         }

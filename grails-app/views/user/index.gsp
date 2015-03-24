@@ -1,21 +1,21 @@
 
-<%@ page import="subscriberpoc.Subscriber" %>
+<%@ page import="subscriberpoc.User" %>
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta name="layout" content="main">
-		<g:set var="entityName" value="${message(code: 'subscriber.label', default: 'Subscriber')}" />
+		<g:set var="entityName" value="${message(code: 'user.label', default: 'User')}" />
 		<title><g:message code="default.list.label" args="[entityName]" /></title>
 	</head>
 	<body>
-		<a href="#list-subscriber" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
+		<a href="#list-user" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
 		<div class="nav" role="navigation">
 			<ul>
 				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>
 			</ul>
 		</div>
-		<div id="list-subscriber" class="content scaffold-list" role="main">
+		<div id="list-user" class="content scaffold-list" role="main">
 			<h1><g:message code="default.list.label" args="[entityName]" /></h1>
 			<g:if test="${flash.message}">
 				<div class="message" role="status">${flash.message}</div>
@@ -24,26 +24,26 @@
 			<thead>
 					<tr>
 					
-						<g:sortableColumn property="name" title="${message(code: 'subscriber.name.label', default: 'Name')}" />
+						<g:sortableColumn property="name" title="${message(code: 'user.username.label', default: 'UserName')}" />
 					
-						<g:sortableColumn property="email" title="${message(code: 'subscriber.email.label', default: 'Email')}" />
+						<g:sortableColumn property="email" title="${message(code: 'user.email.label', default: 'Email')}" />
 					
 					</tr>
 				</thead>
 				<tbody>
-				<g:each in="${subscriberInstanceList}" status="i" var="subscriberInstance">
+				<g:each in="${userInstanceList}" status="i" var="userInstance">
 					<tr class="${(i % 2) == 0 ? 'even' : 'odd'}">
 					
-						<td><g:link action="show" id="${subscriberInstance.id}">${fieldValue(bean: subscriberInstance, field: "name")}</g:link></td>
+						<td><g:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: "username")}</g:link></td>
 					
-						<td>${fieldValue(bean: subscriberInstance, field: "email")}</td>
+						<td>${fieldValue(bean: userInstance, field: "email")}</td>
 					
 					</tr>
 				</g:each>
 				</tbody>
 			</table>
 			<div class="pagination">
-				<g:paginate total="${subscriberInstanceCount ?: 0}" />
+				<g:paginate total="${userInstanceCount ?: 0}" />
 			</div>
 		</div>
 	</body>

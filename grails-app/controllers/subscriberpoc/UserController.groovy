@@ -1,111 +1,119 @@
 package subscriberpoc
 
-import com.drew.metadata.Age
 import grails.plugin.springsecurity.annotation.Secured
 import grails.rest.RestfulController
+import grails.transaction.Transactional
 import org.apache.commons.logging.LogFactory
 
 import static org.springframework.http.HttpStatus.*
-import grails.transaction.Transactional
 
-@Secured(['ROLE_ADMIN'])
 @Transactional(readOnly = true)
 class UserController extends RestfulController {
 
     private static final log = LogFactory.getLog(this)
+
+
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE", index: "GET"]
 
     static responseFormats = ['html', 'json', 'xml']
 
     UserController() {
-        super(Subscriber)
-    }
-
-    def index(Integer max) {
-        params.max = Math.min(max ?: 10, 100)
-        respond Subscriber.list(params), model: [subscriberInstanceCount: Subscriber.count()]
-    }
-
-    def show(Subscriber subscriberInstance) {
-        respond subscriberInstance
+        super(User)
     }
 
     def create() {
 
-        respond new Subscriber(params)
+        respond new User(params)
     }
 
+
+    def index(Integer max) {
+        params.max = Math.min(max ?: 10, 100)
+        respond User.list(params), model: [userInstanceCount: User.count()]
+    }
+
+    @Secured(['ROLE_ADMIN'])
+    def show(User userInstance) {
+        respond userInstance
+    }
+
+
+
+
     @Transactional
-    def save(Subscriber subscriberInstance) {
+    def save(User userInstance) {
         log.debug("Parameters == " + params)
-        if (subscriberInstance == null) {
+        if (userInstance == null) {
             notFound()
             return
         }
 
-        if (subscriberInstance.hasErrors()) {
-            respond subscriberInstance.errors, view: 'create'
+        if (userInstance.hasErrors()) {
+            respond userInstance.errors, view: 'create'
             return
         }
 
         log.debug("selected checkboxes " + params?.agency)
         for(i in params?.agency){
-            subscriberInstance.addToSubscriptions(Agency.get(i))
+            userInstance.addToSubscriptions(Agency.get(i))
         }
 
-        log.debug("Object with subscriptions" + subscriberInstance)
-        subscriberInstance.save flush: true
+        log.debug("Object with subscriptions" + userInstance)
+        userInstance.save flush: true
 
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.created.message', args: [message(code: 'subscriber.label', default: 'Subscriber'), subscriberInstance.id])
-                redirect subscriberInstance
+                flash.message = message(code: 'default.created.message', args: [message(code: 'subscriber.label', default: 'User'), userInstance.id])
+                redirect userInstance
             }
-            '*' { respond subscriberInstance, [status: CREATED] }
+            '*' { respond userInstance, [status: CREATED] }
         }
     }
 
-    def edit(Subscriber subscriberInstance) {
-        respond subscriberInstance
+
+    def edit(User userInstance) {
+        respond userInstance
     }
 
+
     @Transactional
-    def update(Subscriber subscriberInstance) {
-        if (subscriberInstance == null) {
+    def update(User userInstance) {
+        if (userInstance == null) {
             notFound()
             return
         }
 
-        if (subscriberInstance.hasErrors()) {
-            respond subscriberInstance.errors, view: 'edit'
+        if (userInstance.hasErrors()) {
+            respond userInstance.errors, view: 'edit'
             return
         }
 
-        subscriberInstance.save flush: true
+        userInstance.save flush: true
 
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.updated.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), subscriberInstance.id])
-                redirect subscriberInstance
+                flash.message = message(code: 'default.updated.message', args: [message(code: 'User.label', default: 'User'), userInstance.id])
+                redirect userInstance
             }
-            '*' { respond subscriberInstance, [status: OK] }
+            '*' { respond userInstance, [status: OK] }
         }
     }
 
-    @Transactional
-    def delete(Subscriber subscriberInstance) {
 
-        if (subscriberInstance == null) {
+    @Transactional
+    def delete(User userInstance) {
+
+        if (userInstance == null) {
             notFound()
             return
         }
 
-        subscriberInstance.delete flush: true
+        userInstance.delete flush: true
 
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.deleted.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), subscriberInstance.id])
+                flash.message = message(code: 'default.deleted.message', args: [message(code: 'User.label', default: 'User'), userInstance.id])
                 redirect action: "index", method: "GET"
             }
             '*' { render status: NO_CONTENT }
@@ -115,7 +123,7 @@ class UserController extends RestfulController {
     protected void notFound() {
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.not.found.message', args: [message(code: 'subscriber.label', default: 'Subscriber'), params.id])
+                flash.message = message(code: 'default.not.found.message', args: [message(code: 'User.label', default: 'User'), params.id])
                 redirect action: "index", method: "GET"
             }
             '*' { render status: NOT_FOUND }
