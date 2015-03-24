@@ -68,24 +68,6 @@ List<Site> sitesList = new ArrayList<>(0);
 List<Release> releasesList = new ArrayList<>(0)
 List<Release> existingReleases = new ArrayList<>(0)
 
-println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'release...' + ANSI_RESET)
-http.request( Method.GET, ContentType.TEXT ) { req ->
-    uri.path = 'release'
-    headers.Accept = 'application/json'
-
-    response.success = { resp, reader ->
-        print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
-        def readerText = reader.text
-        println(readerText)
-        JsonArray releasesListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
-        for (JsonElement releaseListJson : releasesListJsonArray) {
-
-            Release releaseList = gson.fromJson(releaseListJson, Release.class)
-            existingReleases.add(releaseList)
-        }
-    }
-}
-
 println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'site...' + ANSI_RESET)
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'site'
