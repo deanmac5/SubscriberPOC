@@ -33,14 +33,14 @@ class UserController extends RestfulController {
         respond User.list(params), model: [userInstanceCount: User.count()]
     }
 
-    @Secured(['ROLE_ADMIN'])
+    @Secured(['ROLE_USER','ROLE_ADMIN'])
     def show(User userInstance) {
         respond userInstance
     }
 
 
 
-
+    @Secured(['ROLE_USER','ROLE_ADMIN'])
     @Transactional
     def save(User userInstance) {
         log.debug("Parameters == " + params)
@@ -71,12 +71,12 @@ class UserController extends RestfulController {
         }
     }
 
-
+    @Secured(['ROLE_USER','ROLE_ADMIN'])
     def edit(User userInstance) {
         respond userInstance
     }
 
-
+    @Secured(['ROLE_USER','ROLE_ADMIN'])
     @Transactional
     def update(User userInstance) {
         if (userInstance == null) {
@@ -100,7 +100,7 @@ class UserController extends RestfulController {
         }
     }
 
-
+    @Secured(['ROLE_ADMIN'])
     @Transactional
     def delete(User userInstance) {
 
