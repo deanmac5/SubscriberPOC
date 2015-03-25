@@ -1,5 +1,6 @@
 package subscriberpoc
 
+import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.annotation.Secured
 import grails.rest.RestfulController
 import grails.transaction.Transactional
@@ -11,6 +12,8 @@ import static org.springframework.http.HttpStatus.*
 class UserController extends RestfulController {
 
     private static final log = LogFactory.getLog(this)
+
+    def springSecurityService
 
 
 
@@ -27,14 +30,26 @@ class UserController extends RestfulController {
         respond new User(params)
     }
 
-
+    @Secured(['ROLE_USER','ROLE_ADMIN'])
     def index(Integer max) {
+        def authenticatedUser = User.findByUsername(springSecurityService.principal.username)
+        def users = []
         params.max = Math.min(max ?: 10, 100)
-        respond User.list(params), model: [userInstanceCount: User.count()]
+        if(SpringSecurityUtils.ifAnyGranted('ROLE_ADMIN')){
+            users = User.list(params)
+        } else {
+            users.add(User.findById(authenticatedUser.id))
+        }
+        respond users
     }
 
     @Secured(['ROLE_USER','ROLE_ADMIN'])
     def show(User userInstance) {
+        def authenticatedUser = User.findByUsername(springSecurityService.principal.username)
+
+        if(SpringSecurityUtils.ifAnyGranted('ROLE_USER')){
+           userInstance = User.findById(authenticatedUser.id)
+        }
         respond userInstance
     }
 
@@ -73,6 +88,11 @@ class UserController extends RestfulController {
 
     @Secured(['ROLE_USER','ROLE_ADMIN'])
     def edit(User userInstance) {
+        def authenticatedUser = User.findByUsername(springSecurityService.principal.username)
+
+        if(SpringSecurityUtils.ifAnyGranted('ROLE_USER')) {
+            userInstance = User.findById(authenticatedUser.id)
+        }
         respond userInstance
     }
 
