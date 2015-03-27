@@ -78,16 +78,14 @@ class UserController extends RestfulController {
         log.debug("Object with subscriptions" + userInstance)
         userInstance.save flush: true
 
-        request.withFormat {
-            form multipartForm {
-                flash.message = message(code: 'default.created.message', args: [message(code: 'subscriber.label', default: 'User'), userInstance.id])
-                log.debug("User should be saved at this point")
-
-
+            request.withFormat {
+                form multipartForm {
+                    flash.message = message(code: 'default.created.message', args: [message(code: 'user.label', default: 'User'), userInstance.id])
+                    redirect view: ('create')
+                }
+                '*' { respond userInstance, [status: CREATED] }
             }
-            '*' { respond userInstance, [status: CREATED] }
-            redirect(uri:'/')
-        }
+
     }
 
     @Secured(['ROLE_USER', 'ROLE_ADMIN'])
@@ -125,7 +123,10 @@ class UserController extends RestfulController {
         }
     }
 
-
+//    def success(User userInstance){
+//        log.debug("User should be saved at this point")
+//        redirect(controller: "User", action: "")
+//    }
 
     @Secured(['ROLE_ADMIN'])
     @Transactional
