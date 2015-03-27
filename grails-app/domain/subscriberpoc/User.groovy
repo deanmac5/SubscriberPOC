@@ -18,8 +18,10 @@ class User {
 
 	static constraints = {
 		username blank: false, unique: true
-		password blank: false
-        email email: true
+		password blank: false, validator: {passwd, user ->
+			passwd != user.username
+		}
+        email email: true // unique: true //TODO put this in once prototyping is complete
 	}
 
 	static mapping = {

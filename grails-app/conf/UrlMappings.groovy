@@ -7,16 +7,16 @@ class UrlMappings {
             }
         }
 
-        "/"(view:"/index")
+        "/"(controller:"user", action: "create")
         "500"(view:'/error')
 
         "/api/agency"(resources: 'agency')
         "/api/site"(resources: 'site')
         "/api/release"(resources: 'release')
-        "/api/subscriber"(resources: 'subscriber')
+        "/api/user"(resources: 'user')
         "/agency"(resources: 'agency')
         "/site"(resources: 'site')
         "/release"(resources: 'release')
-        "/subscriber"(resources: 'subscriber')
+        "/user"(resources: 'user')
 	}
 }

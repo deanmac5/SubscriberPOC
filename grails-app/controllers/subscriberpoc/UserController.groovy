@@ -11,10 +11,11 @@ import static org.springframework.http.HttpStatus.*
 @Transactional(readOnly = true)
 class UserController extends RestfulController {
 
+    static defaultAction = "create"
+
     private static final log = LogFactory.getLog(this)
 
     def springSecurityService
-
 
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE", index: "GET"]
@@ -30,32 +31,32 @@ class UserController extends RestfulController {
         respond new User(params)
     }
 
-    @Secured(['ROLE_USER','ROLE_ADMIN'])
+
     def index(Integer max) {
-        def authenticatedUser = User.findByUsername(springSecurityService.principal.username)
+
+        def authenticatedUser = User.findByUsername(springSecurityService.principal?.username)
+
         def users = []
         params.max = Math.min(max ?: 10, 100)
-        if(SpringSecurityUtils.ifAnyGranted('ROLE_ADMIN')){
+        if (SpringSecurityUtils.ifAnyGranted('ROLE_ADMIN')) {
             users = User.list(params)
         } else {
-            users.add(User.findById(authenticatedUser.id))
+            users.add(User.findById(authenticatedUser?.id))
         }
         respond users
     }
 
-    @Secured(['ROLE_USER','ROLE_ADMIN'])
+    @Secured(['ROLE_USER', 'ROLE_ADMIN'])
     def show(User userInstance) {
-        def authenticatedUser = User.findByUsername(springSecurityService.principal.username)
+        def authenticatedUser = User.findByUsername(springSecurityService.principal?.username)
 
-        if(SpringSecurityUtils.ifAnyGranted('ROLE_USER')){
-           userInstance = User.findById(authenticatedUser.id)
+        if (SpringSecurityUtils.ifAnyGranted('ROLE_USER')) {
+            userInstance = User.findById(authenticatedUser?.id)
         }
         respond userInstance
     }
 
-
-
-    @Secured(['ROLE_USER','ROLE_ADMIN'])
+//    @Secured(['ROLE_USER','ROLE_ADMIN'])
     @Transactional
     def save(User userInstance) {
         log.debug("Parameters == " + params)
@@ -70,7 +71,7 @@ class UserController extends RestfulController {
         }
 
         log.debug("selected checkboxes " + params?.agency)
-        for(i in params?.agency){
+        for (i in params?.agency) {
             userInstance.addToSubscriptions(Agency.get(i))
         }
 
@@ -80,23 +81,26 @@ class UserController extends RestfulController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.created.message', args: [message(code: 'subscriber.label', default: 'User'), userInstance.id])
-                redirect userInstance
+                log.debug("User should be saved at this point")
+
+
             }
             '*' { respond userInstance, [status: CREATED] }
+            redirect(uri:'/')
         }
     }
 
-    @Secured(['ROLE_USER','ROLE_ADMIN'])
+    @Secured(['ROLE_USER', 'ROLE_ADMIN'])
     def edit(User userInstance) {
         def authenticatedUser = User.findByUsername(springSecurityService.principal.username)
 
-        if(SpringSecurityUtils.ifAnyGranted('ROLE_USER')) {
+        if (SpringSecurityUtils.ifAnyGranted('ROLE_USER')) {
             userInstance = User.findById(authenticatedUser.id)
         }
         respond userInstance
     }
 
-    @Secured(['ROLE_USER','ROLE_ADMIN'])
+    @Secured(['ROLE_USER', 'ROLE_ADMIN'])
     @Transactional
     def update(User userInstance) {
         if (userInstance == null) {
@@ -117,8 +121,11 @@ class UserController extends RestfulController {
                 redirect userInstance
             }
             '*' { respond userInstance, [status: OK] }
+
         }
     }
+
+
 
     @Secured(['ROLE_ADMIN'])
     @Transactional
