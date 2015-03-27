@@ -31,7 +31,7 @@ class UserController extends RestfulController {
         respond new User(params)
     }
 
-
+    @Secured(['ROLE_USER', 'ROLE_ADMIN'])
     def index(Integer max) {
 
         def authenticatedUser = User.findByUsername(springSecurityService.principal?.username)
@@ -43,7 +43,9 @@ class UserController extends RestfulController {
         } else {
             users.add(User.findById(authenticatedUser?.id))
         }
-        respond users
+
+            respond users
+
     }
 
     @Secured(['ROLE_USER', 'ROLE_ADMIN'])
