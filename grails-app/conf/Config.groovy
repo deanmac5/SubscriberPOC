@@ -126,3 +126,20 @@ log4j.main = {
 
     debug   'subscriberpoc'
 }
+
+
+// Added by the Spring Security Core plugin:
+grails.plugin.springsecurity.userLookup.userDomainClassName = 'subscriberpoc.User'
+grails.plugin.springsecurity.userLookup.authorityJoinClassName = 'subscriberpoc.UserRole'
+grails.plugin.springsecurity.authority.className = 'subscriberpoc.Role'
+grails.plugin.springsecurity.controllerAnnotations.staticRules = [
+	'/':                              ['permitAll'],
+	'/index':                         ['permitAll'],
+	'/index.gsp':                     ['permitAll'],
+	'/assets/**':                     ['permitAll'],
+	'/**/js/**':                      ['permitAll'],
+	'/**/css/**':                     ['permitAll'],
+	'/**/images/**':                  ['permitAll'],
+	'/**/favicon.ico':                ['permitAll']
+]
+
