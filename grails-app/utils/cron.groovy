@@ -39,6 +39,9 @@ String ANSI_YELLOW = "\u001B[33m";
 String ANSI_BLUE = "\u001B[34m";
 String ANSI_PURPLE = "\u001B[35m";
 
+String user = "Pablo"
+String pass = "password"
+
 String host = "localhost"
 String port = "25"
 String from = "noreply@localhost";
@@ -50,7 +53,8 @@ properties.put("mail.debug", "false");
 
 Session session = Session.getInstance(properties);
 
-String url = "http://localhost:8080/SubscriberPOC/api/";
+String base_url = "http://localhost:8080/SubscriberPOC/";
+String url = base_url + "api/";
 Date startDate = new Date();
 long lStartTime = startDate.getTime();
 
@@ -61,17 +65,38 @@ println(ANSI_PURPLE + "Email Server: " + ANSI_YELLOW + host + ":" + port + " - "
 
 
 def http = new HTTPBuilder(url)
+def http_base = new HTTPBuilder(base_url)
 Gson gson = new Gson()
 List<Agency> agencyList = new ArrayList<>(0)
 List<Agency> subscribers = new ArrayList<>(0)
 List<Site> sitesList = new ArrayList<>(0);
 List<Release> releasesList = new ArrayList<>(0)
 List<Release> existingReleases = new ArrayList<>(0)
+def cookies = []
+
+//Authenticate
+http_base.request(Method.POST) {
+    uri.path = 'j_spring_security_check'
+    requestContentType = ContentType.URLENC
+    body = [j_username: user, j_password: pass]
+    response.'302' = { resp, reader ->
+        print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
+        println(ANSI_GREEN + "Authenticated" + ANSI_RESET)
+        resp.getHeaders('Set-Cookie').each {
+            String cookie = it.value.split(';')[0]
+            cookies.add(cookie)
+        }
+    }
+    response.failure = { resp ->
+        println(ANSI_RED + "Unexpected error: ${resp}" + ANSI_RESET)
+    }
+}
 
 println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'site...' + ANSI_RESET)
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'site'
     headers.Accept = 'application/json'
+    headers.Cookie = cookies.join(';')
 
     response.success = { resp, reader ->
         print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
@@ -91,6 +116,7 @@ println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'agency...' + ANSI_RESE
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'agency'
     headers.Accept = 'application/json'
+    headers.Cookie = cookies.join(';')
 
     response.success = { resp, reader ->
         print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
@@ -161,6 +187,7 @@ println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'release...' + ANSI_RES
 http.request( Method.GET, ContentType.TEXT ) { req ->
     uri.path = 'release'
     headers.Accept = 'application/json'
+    headers.Cookie = cookies.join(';')
 
     response.success = { resp, reader ->
         print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
@@ -186,6 +213,8 @@ for(Release release: releasesList) {
         println(ANSI_RED + "Performing POST on: " + ANSI_YELLOW + 'release...' + ANSI_RESET)
         http.request(Method.POST, ContentType.JSON) { req ->
             uri.path = 'release'
+            headers.Cookie = cookies.join(';')
+
             def attr = ["title": release.title, "url": release.url, "snippet": release.snippet, "dateCreated": release.dateCreated, "releaseDate": release.releaseDate, "site": release.site]
             body = (attr as JSON).toString()
             response.success = { resp, reader ->
@@ -210,8 +239,9 @@ if(!releasesAdded.isEmpty()) {
     //Get Subscribers
     println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'subscriber...' + ANSI_RESET)
     http.request( Method.GET, ContentType.TEXT ) { req ->
-        uri.path = 'subscriber'
+        uri.path = 'user'
         headers.Accept = 'application/json'
+        headers.Cookie = cookies.join(';')
 
         response.success = { resp, reader ->
             print(ANSI_PURPLE + "Response: " + ANSI_YELLOW + resp.statusLine.toString() + ANSI_RESET)
