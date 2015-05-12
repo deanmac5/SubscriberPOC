@@ -20,7 +20,7 @@ class SubscriberController {
     static responseFormats = ['html', 'json', 'xml']
 
     @Secured(['ROLE_USER', 'ROLE_ADMIN'])
-    def list(Integer max) {
+    def index(Integer max) {
         params.max = Math.min(max ?: 10, 100)
         respond Subscriber.list(params), model: [subscriberInstanceCount: Subscriber.count()]
     }
@@ -43,8 +43,11 @@ class SubscriberController {
         }
 
         if (subscriberInstance.hasErrors()) {
-            respond subscriberInstance.errors, view: 'create'
-            return
+            if(!subscriberInstance.errors.getFieldError("email").getCodes().contains("unique")){
+                respond subscriberInstance.errors, view: 'create'
+                return
+            }
+            subscriberInstance.clearErrors()
         }
 
         subscriberInstance.save flush: true
@@ -53,6 +56,8 @@ class SubscriberController {
             form multipartForm {
                 flash.message = message(code: 'default.created.message', args: [message(code: 'subscriber.label', default: 'Subscriber'), subscriberInstance.id])
                 respond subscriberInstance, view: 'create'
+
+
             }
             '*' { respond subscriberInstance, [status: CREATED] }
         }
@@ -116,4 +121,5 @@ class SubscriberController {
             '*' { render status: NOT_FOUND }
         }
     }
+
 }
