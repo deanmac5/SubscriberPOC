@@ -8,6 +8,6 @@ class Subscriber {
     static hasMany = [subscriptions: Agency]
 
     static constraints = {
-        email email:true, unique: true
+        email email:true // unique: false  //TODO put this in once prototyping is complete
     }
 }

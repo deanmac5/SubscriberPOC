@@ -21,7 +21,7 @@ class User {
 		password blank: false, validator: {passwd, user ->
 			passwd != user.username
 		}
-        email email: true // unique: true //TODO put this in once prototyping is complete
+        email email: true, unique: true
 	}
 
 	static mapping = {
