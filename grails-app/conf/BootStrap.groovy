@@ -30,7 +30,7 @@ class BootStrap {
 
 
         def third = new Subscriber(email: "mediareleasetester@gmail.com", subscriptions: [Agency.findByTitle("Dept of Finance")]).save()
-        def fourth = new Subscriber(email: "mediareleasetester@gmail.com", subscriptions: [Agency.findByTitle("Dept of Industry")]).save()
+        def fourth = new Subscriber(email: "media.releasetester@gmail.com", subscriptions: [Agency.findByTitle("Dept of Industry")]).save()
     }
 
 

@@ -7,7 +7,7 @@ class UrlMappings {
             }
         }
 
-        "/"(controller:"user", action: "create")
+        "/"(controller:"subscriber", action: "create")
         "500"(view:'/error')
 
         "/api/agency"(resources: 'agency')
