@@ -20,7 +20,7 @@ class SubscriberController {
     static responseFormats = ['html', 'json', 'xml']
 
     @Secured(['ROLE_USER', 'ROLE_ADMIN'])
-    def index(Integer max) {
+    def list(Integer max) {
         params.max = Math.min(max ?: 10, 100)
         respond Subscriber.list(params), model: [subscriberInstanceCount: Subscriber.count()]
     }
@@ -52,7 +52,8 @@ class SubscriberController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.created.message', args: [message(code: 'subscriber.label', default: 'Subscriber'), subscriberInstance.id])
-                redirect subscriberInstance
+//                redirect ('success')
+                respond subscriberInstance, view: 'success'
             }
             '*' { respond subscriberInstance, [status: CREATED] }
         }

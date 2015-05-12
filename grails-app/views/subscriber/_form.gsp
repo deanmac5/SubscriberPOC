@@ -11,21 +11,19 @@
 
 </div>
 
+
+
 <div class="fieldcontain ${hasErrors(bean: subscriberInstance, field: 'subscriptions', 'error')} ">
 	<label for="subscriptions">
-		<g:message code="subscriber.subscriptions.label" default="Subscriptions" />
-		
-	</label>
-	<g:select name="subscriptions" from="${subscriberpoc.Agency.list()}" multiple="multiple" optionKey="id" size="5" value="${subscriberInstance?.subscriptions*.id}" class="many-to-many"/>
+		<g:message code="subscriber.subscriptions.label" default="Agency subscriptions:" />
 
-</div>
-
-<div class="fieldcontain ${hasErrors(bean: subscriberInstance, field: 'verified', 'error')} ">
-	<label for="verified">
-		<g:message code="subscriber.verified.label" default="Verified" />
-		
 	</label>
-	<g:checkBox name="verified" value="${subscriberInstance?.verified}" />
+	<g:each in="${subscriberpoc.Agency.list()}" var="agency" status="i">
+		${agency.title}
+		<g:checkBox name="agency" value="${agency.id}" class="many-to-many"/>
+
+	</g:each>
+
 
 </div>
 
