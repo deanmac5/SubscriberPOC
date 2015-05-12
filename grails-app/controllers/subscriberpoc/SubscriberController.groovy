@@ -52,8 +52,7 @@ class SubscriberController {
         request.withFormat {
             form multipartForm {
                 flash.message = message(code: 'default.created.message', args: [message(code: 'subscriber.label', default: 'Subscriber'), subscriberInstance.id])
-//                redirect ('success')
-                respond subscriberInstance, view: 'success'
+                respond subscriberInstance, view: 'create'
             }
             '*' { respond subscriberInstance, [status: CREATED] }
         }
