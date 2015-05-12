@@ -12,7 +12,7 @@ class User {
 	boolean passwordExpired
     String email
 
-    static hasMany = [subscriptions: Agency]
+
 
 	static transients = ['springSecurityService']
 
