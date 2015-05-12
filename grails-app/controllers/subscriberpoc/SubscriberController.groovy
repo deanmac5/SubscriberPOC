@@ -1,125 +1,49 @@
 package subscriberpoc
-
-import org.apache.commons.logging.LogFactory
-import grails.plugin.springsecurity.SpringSecurityUtils
-import grails.plugin.springsecurity.annotation.Secured
-
-import static org.springframework.http.HttpStatus.*
 import grails.transaction.Transactional
 
 @Transactional(readOnly = true)
 class SubscriberController {
 
-    static defaultAction = "create"
+    def mailService
 
-    private static final log = LogFactory.getLog(this)
-
-    def springSecurityService
-
-    static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
-    static responseFormats = ['html', 'json', 'xml']
-
-    @Secured(['ROLE_USER', 'ROLE_ADMIN'])
-    def index(Integer max) {
-        params.max = Math.min(max ?: 10, 100)
-        respond Subscriber.list(params), model: [subscriberInstanceCount: Subscriber.count()]
+    def index() {
+        [subscriberInstance: new Subscriber(params)]
     }
 
-
-    @Secured(['ROLE_USER', 'ROLE_ADMIN'])
-    def show(Subscriber subscriberInstance) {
-        respond subscriberInstance
-    }
-
-    def create() {
-        respond new Subscriber(params)
-    }
-
-    @Transactional
-    def save(Subscriber subscriberInstance) {
-        if (subscriberInstance == null) {
-            notFound()
+    def signup(){
+        def subscriberInstance = new Subscriber(params)
+        subscriberInstance.verified = false;
+        subscriberInstance.confirmCode = UUID.randomUUID().toString()
+        if(!subscriberInstance.save(flush: true)){
             return
         }
 
-        if (subscriberInstance.hasErrors()) {
-            if(!subscriberInstance.errors.getFieldError("email").getCodes().contains("unique")){
-                respond subscriberInstance.errors, view: 'create'
-                return
-            }
-            subscriberInstance.clearErrors()
+        mailService.sendMail {
+            to subscriberInstance.email
+            subject "New Subscription Confirmation"
+            html g.render(template: "mailtemplate", model: [code:subscriberInstance.confirmCode])
         }
 
-        subscriberInstance.save flush: true
-
-        request.withFormat {
-            form multipartForm {
-                flash.message = message(code: 'default.created.message', args: [message(code: 'subscriber.label', default: 'Subscriber'), subscriberInstance.id])
-                respond subscriberInstance, view: 'create'
-
-
-            }
-            '*' { respond subscriberInstance, [status: CREATED] }
-        }
+        render(view: "index", model: [subscriberInstance: subscriberInstance])
+        redirect(action: "success")
     }
 
-    @Secured(['ROLE_USER', 'ROLE_ADMIN'])
-    def edit(Subscriber subscriberInstance) {
-        respond subscriberInstance
+    def success(){
+        render(view: 'success', model: [message: 'Your subscription is almost created. Please complete this the process ' +
+                'using the email we have now sent to your email address'])
     }
 
-    @Secured(['ROLE_USER', 'ROLE_ADMIN'])
-    @Transactional
-    def update(Subscriber subscriberInstance) {
-        if (subscriberInstance == null) {
-            notFound()
+    def confirm(String id){
+        Subscriber subscriberInstance = Subscriber.findByConfirmCode(id)
+        if(!subscriberInstance){
             return
         }
 
-        if (subscriberInstance.hasErrors()) {
-            respond subscriberInstance.errors, view: 'edit'
+        subscriberInstance.verified = true
+        if(!subscriberInstance.save(flush: true)){
+            render(view: "success", model: [message: 'Problem activating account'])
             return
         }
-
-        subscriberInstance.save flush: true
-
-        request.withFormat {
-            form multipartForm {
-                flash.message = message(code: 'default.updated.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), subscriberInstance.id])
-                redirect subscriberInstance
-            }
-            '*' { respond subscriberInstance, [status: OK] }
-        }
+        render(view: "success", model: [message: 'Your subscription has been successfully activated'])
     }
-
-    @Secured(['ROLE_ADMIN'])
-    @Transactional
-    def delete(Subscriber subscriberInstance) {
-
-        if (subscriberInstance == null) {
-            notFound()
-            return
-        }
-
-        subscriberInstance.delete flush: true
-
-        request.withFormat {
-            form multipartForm {
-                flash.message = message(code: 'default.deleted.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), subscriberInstance.id])
-                redirect action: "index", method: "GET"
-            }
-            '*' { render status: NO_CONTENT }
-        }
-    }
-
-    protected void notFound() {
-        request.withFormat {
-            form multipartForm {
-                flash.message = message(code: 'default.not.found.message', args: [message(code: 'subscriber.label', default: 'Subscriber'), params.id])
-                redirect action: "index", method: "GET"
-            }
-            '*' { render status: NOT_FOUND }
-        }
-    }
-
 }
