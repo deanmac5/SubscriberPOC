@@ -1,4 +1,6 @@
 package subscriberpoc
+
+import grails.plugin.springsecurity.annotation.Secured
 import grails.transaction.Transactional
 
 @Transactional(readOnly = true)
@@ -10,39 +12,53 @@ class SubscriberController {
         [subscriberInstance: new Subscriber(params)]
     }
 
-    def signup(){
+    @Secured(['ROLE_ADMIN'])
+    def list(Integer max) {
+
+        def authenticatedUser = User.findByUsername(springSecurityService.principal?.username)
+
+        def subscribers = []
+        params.max = Math.min(max ?: 10, 100)
+        subscribers = Subscriber.list(params)
+
+
+        respond subscribers
+
+    }
+
+    def signup() {
         def subscriberInstance = new Subscriber(params)
         subscriberInstance.verified = false;
         subscriberInstance.confirmCode = UUID.randomUUID().toString()
-        if(!subscriberInstance.save(flush: true)){
+        if (!subscriberInstance.save(flush: true)) {
             return
         }
 
         mailService.sendMail {
             to subscriberInstance.email
             subject "New Subscription Confirmation"
-            html g.render(template: "mailtemplate", model: [code:subscriberInstance.confirmCode])
+            html g.render(template: "mailtemplate", model: [code: subscriberInstance.confirmCode])
         }
 
         render(view: "success", model: [subscriberInstance: subscriberInstance])
         redirect(action: "success")
     }
 
-    def success(){
+    def success() {
 
         flash.message = 'Your subscription is almost created. Please complete the process ' +
                 'using the email we have now sent to your email address'
-        render(view: 'index' )
+        render(view: 'index')
     }
 
-    def confirm(String id){
+    def confirm(String id) {
         Subscriber subscriberInstance = Subscriber.findByConfirmCode(id)
-        if(!subscriberInstance){
+        if (!subscriberInstance) {
             return
         }
 
         subscriberInstance.verified = true
-        if(!subscriberInstance.save(flush: true)){
+        if (!subscriberInstance.save(flush: true)) {
             render(view: "success", model: [message: 'Problem activating account'])
             return
         }
