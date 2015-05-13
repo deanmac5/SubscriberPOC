@@ -29,8 +29,9 @@ class BootStrap {
         UserRole.create second, userRole, true
 
 
-        def third = new Subscriber(email: "mediareleasetester@gmail.com", subscriptions: [Agency.findByTitle("Dept of Finance")]).save()
-        def fourth = new Subscriber(email: "media.releasetester@gmail.com", subscriptions: [Agency.findByTitle("Dept of Industry")]).save()
+        Subscriber third = new Subscriber(email: "mediareleasetester@gmail.com", verified: true, confirmCode: "blah", subscriptions: [Agency.findByTitle("Dept of Finance")]).save(flush: true)
+        Subscriber fourth = new Subscriber(email: "media.releasetester@gmail.com", verified: false, confirmCode: "blah", subscriptions: [Agency.findByTitle("Dept of Industry")]).save(flush: true)
+
     }
 
 

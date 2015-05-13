@@ -2,11 +2,19 @@ package subscriberpoc
 
 import grails.plugin.springsecurity.annotation.Secured
 import grails.transaction.Transactional
+import org.apache.commons.logging.LogFactory
 
 @Transactional(readOnly = true)
 class SubscriberController {
 
+
+    private static final log = LogFactory.getLog(this)
     def mailService
+    def springSecurityService
+
+
+    static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE", index: "GET"]
+    static responseFormats = ['html', 'json', 'xml']
 
     def index() {
         [subscriberInstance: new Subscriber(params)]
@@ -30,9 +38,9 @@ class SubscriberController {
         def subscriberInstance = new Subscriber(params)
         subscriberInstance.verified = false;
         subscriberInstance.confirmCode = UUID.randomUUID().toString()
-        if (!subscriberInstance.save(flush: true)) {
-            return
-        }
+//        if (!subscriberInstance.save(flush: true)) {
+//            return
+//        }
 
         mailService.sendMail {
             to subscriberInstance.email
