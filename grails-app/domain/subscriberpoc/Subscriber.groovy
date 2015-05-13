@@ -10,5 +10,6 @@ class Subscriber {
 
     static constraints = {
         email email:true, unique: true
+        confirmCode blank: true
     }
 }
