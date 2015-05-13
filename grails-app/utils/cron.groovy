@@ -21,7 +21,7 @@ import org.jsoup.select.Elements
 import subscriberpoc.Agency
 import subscriberpoc.Release
 import subscriberpoc.Site
-import subscriberpoc.User
+import subscriberpoc.Subscriber
 
 import javax.mail.Message
 import javax.mail.Session
@@ -30,7 +30,6 @@ import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
-
 
 String ANSI_RESET = "\u001B[0m";
 String ANSI_RED = "\u001B[31m";
@@ -239,7 +238,7 @@ if(!releasesAdded.isEmpty()) {
     //Get Subscribers
     println(ANSI_RED + "Performing GET on: " + ANSI_YELLOW + 'subscriber...' + ANSI_RESET)
     http.request( Method.GET, ContentType.TEXT ) { req ->
-        uri.path = 'user'
+        uri.path = 'subscriber'
         headers.Accept = 'application/json'
         headers.Cookie = cookies.join(';')
 
@@ -248,7 +247,7 @@ if(!releasesAdded.isEmpty()) {
             def readerText = reader.text
             JsonArray subscriberListJsonArray = new JsonParser().parse(readerText).getAsJsonArray();
             for (JsonElement subscriberListJson : subscriberListJsonArray) {
-                User subscriberList = gson.fromJson(subscriberListJson, User.class)
+                Subscriber subscriberList = gson.fromJson(subscriberListJson, Subscriber.class)
                 JsonArray subscriptionsLists = subscriberListJson.get("subscriptions").getAsJsonArray();
                 for(JsonElement subscriptionListJson : subscriptionsLists) {
                     Agency agencyListItem = gson.fromJson(subscriptionListJson, Agency.class)
@@ -260,8 +259,8 @@ if(!releasesAdded.isEmpty()) {
         }
     }
 
-    for(User subscriber: subscribers) {
-        println(ANSI_BLUE + "Checking user " + subscriber.username + ANSI_RESET)
+    for(Subscriber subscriber: subscribers) {
+        println(ANSI_BLUE + "Checking user " + subscriber.email + ANSI_RESET)
         List<Release> releases = new ArrayList<>(0)
         for(Release allReleases: releasesList) {
             if(subscriber.subscriptions.find( { it.id == allReleases.site.agency.id } )) {
