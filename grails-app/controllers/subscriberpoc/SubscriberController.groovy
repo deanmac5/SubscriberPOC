@@ -24,13 +24,15 @@ class SubscriberController {
             html g.render(template: "mailtemplate", model: [code:subscriberInstance.confirmCode])
         }
 
-        render(view: "index", model: [subscriberInstance: subscriberInstance])
+        render(view: "success", model: [subscriberInstance: subscriberInstance])
         redirect(action: "success")
     }
 
     def success(){
-        render(view: 'success', model: [message: 'Your subscription is almost created. Please complete this the process ' +
-                'using the email we have now sent to your email address'])
+
+        flash.message = 'Your subscription is almost created. Please complete the process ' +
+                'using the email we have now sent to your email address'
+        render(view: 'index' )
     }
 
     def confirm(String id){
