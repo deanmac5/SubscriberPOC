@@ -1,8 +1,13 @@
 package subscriberpoc
 
+import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.annotation.Secured
 import grails.transaction.Transactional
 import org.apache.commons.logging.LogFactory
+
+import static org.springframework.http.HttpStatus.NOT_FOUND
+import static org.springframework.http.HttpStatus.NO_CONTENT
+import static org.springframework.http.HttpStatus.OK
 
 @Transactional(readOnly = true)
 class SubscriberController {
@@ -73,4 +78,70 @@ class SubscriberController {
         }
         render(view: "success", model: [message: 'Your subscription has been successfully activated'])
     }
+
+    def modify(String id) {
+        Subscriber subscriberInstance = Subscriber.findByConfirmCode(id)
+        if (!subscriberInstance) {
+            render(view: "success", model: [message: 'Problem accessing account'])
+            return
+        }
+        render(view: "edit", model: [subscriberInstance: subscriberInstance])
+
+    }
+
+    @Transactional
+    def update(Subscriber subscriberInstance) {
+        if (subscriberInstance == null) {
+            notFound()
+            return
+        }
+
+        if (subscriberInstance.hasErrors()) {
+            respond subscriberInstance.errors, view: 'edit'
+            return
+        }
+
+        subscriberInstance.save flush: true
+
+        request.withFormat {
+            form multipartForm {
+                flash.message = message(code: 'default.updated.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), subscriberInstance.id])
+                redirect subscriberInstance
+            }
+            '*' { respond subscriberInstance, [status: OK] }
+
+        }
+    }
+
+    def show(Subscriber subscriberInstance) {
+        respond subscriberInstance
+    }
+
+    def remove(String id) {
+        Subscriber subscriberInstance = Subscriber.findByConfirmCode(id)
+        if (subscriberInstance == null) {
+            notFound()
+            return
+        }
+
+        subscriberInstance.delete flush: true
+
+        request.withFormat {
+        }
+        form multipartForm {
+            flash.message = message(code: 'default.deleted.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), subscriberInstance.id])
+        }
+        render (view: 'index')
+    }
+
+    protected void notFound() {
+        request.withFormat {
+            form multipartForm {
+                flash.message = message(code: 'default.not.found.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), params.id])
+                redirect action: "index", method: "GET"
+            }
+            '*' { render status: NOT_FOUND }
+        }
+    }
+
 }
