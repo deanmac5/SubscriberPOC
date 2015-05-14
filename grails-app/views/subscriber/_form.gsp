@@ -17,6 +17,10 @@
         <g:message code="subscriber.subscriptions.label" default="Topics:"/>
 
     </label>
+
+    <p>
+        <g:checkBox name="all" value="Select all" class="many-to-many"/>Select All
+    </p>
     <g:each in="${subscriberpoc.Topic.list()}" var="topic" status="i">
         <p>
             <g:checkBox name="topic" value="${topic.id}" class="many-to-many"/>
