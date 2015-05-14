@@ -6,7 +6,7 @@ class Subscriber {
     String confirmCode
     boolean verified
 
-    static hasMany = [subscriptions: Agency]
+    static hasMany = [topics: Topic]
 
     static constraints = {
         email email:true, unique: true
