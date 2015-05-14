@@ -76,7 +76,8 @@ class SubscriberController {
             render(view: "success", model: [message: 'Problem activating account'])
             return
         }
-        render(view: "success", model: [message: 'Your subscription has been successfully activated'])
+        flash.message =  'Your subscription has been successfully activated'
+        render(view: 'index')
     }
 
     def modify(String id) {
