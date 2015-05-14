@@ -7,15 +7,15 @@
 	</head>
 	<body>
 		<a href="#create-subscriber" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
-		<div class="nav" role="navigation">
-			<ul>
-				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
-				<li><g:link class="list" action="index"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
-			</ul>
-		</div>
+		%{--<div class="nav" role="navigation">--}%
+			%{--<ul>--}%
+				%{--<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>--}%
+				%{--<li><g:link class="list" action="index"><g:message code="default.list.label" args="[entityName]" /></g:link></li>--}%
+			%{--</ul>--}%
+		%{--</div>--}%
 		<div id="create-subscriber" class="content scaffold-create" role="main">
 
-		<h1>Sign up for subscription</h1>
+		<h1>Subscribe for Media Release Notifications</h1>
             <g:if test="${flash.message}">
                 <div class="message" role="status">${flash.message}</div>
             </g:if>
@@ -34,8 +34,8 @@
 				</fieldset>
 				<fieldset class="buttons">
 
-					<g:submitButton name="create" class="btn btn-primary"
-									value="${message(code: 'default.button.create.label', default: 'Register')}"/>
+					<g:submitButton name="Subscribe" class="btn btn-primary"
+									value="${message(code: 'subscribe.button.create.label', default: 'Subscribe')}"/>
 				</fieldset>
 			</g:form>
 		</div>
