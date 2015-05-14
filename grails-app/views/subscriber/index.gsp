@@ -20,12 +20,6 @@
                 <div class="message" role="status">${flash.message}</div>
             </g:if>
 
-            %{--<g:if test="${message}">--}%
-                %{--<div class="message" role="status">${message}</div>--}%
-            %{--</g:if>--}%
-
-
-
 
 			<g:hasErrors bean="${subscriberInstance}">
 			<ul class="errors" role="alert">

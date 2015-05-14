@@ -15,12 +15,12 @@
 
 <div class="fieldcontain ${hasErrors(bean: subscriberInstance, field: 'subscriptions', 'error')} ">
 	<label for="subscriptions">
-		<g:message code="subscriber.subscriptions.label" default="Agency subscriptions:" />
+		<g:message code="subscriber.subscriptions.label" default="Topics:" />
 
 	</label>
-	<g:each in="${subscriberpoc.Agency.list()}" var="agency" status="i">
-		${agency.title}
-		<g:checkBox name="agency" value="${agency.id}" class="many-to-many"/>
+	<g:each in="${subscriberpoc.Topic.list()}" var="topic" status="i">
+		${topic.name}
+		<g:checkBox name="topic" value="${topic.id}" class="many-to-many"/>
 
 	</g:each>
 

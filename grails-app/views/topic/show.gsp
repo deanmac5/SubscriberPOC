@@ -23,6 +23,15 @@
 			</g:if>
 			<ol class="property-list topic">
 			
+				<g:if test="${topicInstance?.name}">
+				<li class="fieldcontain">
+					<span id="name-label" class="property-label"><g:message code="topic.name.label" default="Name" /></span>
+					
+						<span class="property-value" aria-labelledby="name-label"><g:fieldValue bean="${topicInstance}" field="name"/></span>
+					
+				</li>
+				</g:if>
+			
 				<g:if test="${topicInstance?.description}">
 				<li class="fieldcontain">
 					<span id="description-label" class="property-label"><g:message code="topic.description.label" default="Description" /></span>
@@ -39,15 +48,6 @@
 						<g:each in="${topicInstance.agencies}" var="a">
 						<span class="property-value" aria-labelledby="agencies-label"><g:link controller="agency" action="show" id="${a.id}">${a?.encodeAsHTML()}</g:link></span>
 						</g:each>
-					
-				</li>
-				</g:if>
-			
-				<g:if test="${topicInstance?.name}">
-				<li class="fieldcontain">
-					<span id="name-label" class="property-label"><g:message code="topic.name.label" default="Name" /></span>
-					
-						<span class="property-value" aria-labelledby="name-label"><g:fieldValue bean="${topicInstance}" field="name"/></span>
 					
 				</li>
 				</g:if>
