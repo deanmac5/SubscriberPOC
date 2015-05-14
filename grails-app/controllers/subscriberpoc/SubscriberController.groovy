@@ -38,9 +38,9 @@ class SubscriberController {
         def subscriberInstance = new Subscriber(params)
         subscriberInstance.verified = false;
         subscriberInstance.confirmCode = UUID.randomUUID().toString()
-//        if (!subscriberInstance.save(flush: true)) {
-//            return
-//        }
+        if (!subscriberInstance.save(flush: true)) {
+            return
+        }
 
         mailService.sendMail {
             to subscriberInstance.email
@@ -62,6 +62,7 @@ class SubscriberController {
     def confirm(String id) {
         Subscriber subscriberInstance = Subscriber.findByConfirmCode(id)
         if (!subscriberInstance) {
+            render(view: "success", model: [message: 'Problem confirming account'])
             return
         }
 

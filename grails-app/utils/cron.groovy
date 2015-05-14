@@ -276,6 +276,8 @@ if(!releasesAdded.isEmpty()) {
             releaseString += "<ul>"
             subscriber.subscriptions.each { if(it.portfolio != null && !it.portfolio.equals("")) {releaseString = releaseString + "<li>" + it.portfolio + "</li>"} };
             releaseString += "</ul>"
+            releaseString += "<p>To modify your subscription click here</p>"
+            releaseString += "<p>To unsubscribe click here</p>"
             releases.each { releaseString = releaseString + it.toEmailFormat() };
 
             String to = subscriber.email;
