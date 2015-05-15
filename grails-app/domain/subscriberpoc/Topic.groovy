@@ -8,7 +8,7 @@ class Topic {
     static hasMany = [agencies: Agency]
 
     static constraints = {
-        name maxSize: 100
+        name maxSize: 100, unique: true
         description nullable: true
     }
 }
