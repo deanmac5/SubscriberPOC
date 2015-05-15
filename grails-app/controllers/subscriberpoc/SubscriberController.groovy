@@ -130,7 +130,7 @@ class SubscriberController {
         request.withFormat {
 
             form multipartForm {
-                flash.message = message(code: 'default.deleted.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), subscriberInstance.id])
+                flash.message = message(code: 'subscribe.deleted.message', args: [message(code: 'Subscriber.label', default: 'Subscriber'), subscriberInstance.id])
                 render(view: 'index')
             }
         }
