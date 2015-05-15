@@ -39,6 +39,8 @@ class SubscriberController {
 
     }
 
+    def test(){}
+
     def signup() {
         def subscriberInstance = new Subscriber(params)
         subscriberInstance.verified = false;
