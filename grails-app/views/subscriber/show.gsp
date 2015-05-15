@@ -32,12 +32,12 @@
 				</li>
 				</g:if>
 			
-				<g:if test="${subscriberInstance?.subscriptions}">
+				<g:if test="${subscriberInstance?.topics}">
 				<li class="fieldcontain">
-					<span id="subscriptions-label" class="property-label"><g:message code="subscriber.subscriptions.label" default="Subscriptions" /></span>
+					<span id="topics-label" class="property-label"><g:message code="subscriber.topics.label" default="Topics" /></span>
 					
-						<g:each in="${subscriberInstance.subscriptions}" var="s">
-						<span class="property-value" aria-labelledby="subscriptions-label"><g:link controller="agency" action="show" id="${s.id}">${s?.encodeAsHTML()}</g:link></span>
+						<g:each in="${subscriberInstance.topics}" var="s">
+						<span class="property-value" aria-labelledby="topics-label"><g:link controller="topic" action="show" id="${s.id}">${s?.encodeAsHTML()}</g:link></span>
 						</g:each>
 					
 				</li>
