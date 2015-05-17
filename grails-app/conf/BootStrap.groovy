@@ -17,7 +17,7 @@ class BootStrap {
     private createSampleData(){
         println "Creating Sample Data"
         def adminRole = new Role(authority: 'ROLE_ADMIN').save(flush: true)
-        def userRole = new Role(authority: 'ROLE_USER').save(flush: true)
+//        def userRole = new Role(authority: 'ROLE_USER').save(flush: true)
         Agency agri = new Agency(title: "Dept of Agriculture").save()
         Agency afma = new Agency(title: "Australian Fisheries Management Authority").save()
         Agency ags = new Agency(title: "Attorney Generals").save()
@@ -30,7 +30,7 @@ class BootStrap {
         def first = new User(username: "Pablo", password: 'password', email: "pablo@test.com").save()
         def second = new User(username: "Deano", password: 'password', email: "deano@test.com").save()
         UserRole.create first, adminRole, true
-        UserRole.create second, userRole, true
+        UserRole.create second, adminRole, true
 
         Subscriber third = new Subscriber(email: "mediareleasetester@gmail.com", verified: true, confirmCode: "a90ab7d7-31ef-41b0-b814-bee216bc1436", subscriptions: [Topic.findByName("Agriculture")]).save(flush: true)
         Subscriber fourth = new Subscriber(email: "media.releasetester@gmail.com", verified: false, confirmCode: "blah", subscriptions: [Topic.findByName("Business and Industry")]).save(flush: true)
